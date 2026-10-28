@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>SQL assessment | Offline review</title>
+  <script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+  </script>
+  <style>/*__SSA_STYLES__*/</style>
+</head>
+<body>
+  <a class="skip-link" href="#comparison">Skip to assessment</a>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Simple SQL Assessment / Offline snapshot</p>
+      <h1>Three targets. Evidence first.</h1>
+      <p id="snapshot-meta"></p>
+    </div>
+    <button type="button" id="print-report">Print report</button>
+  </header>
+  <aside class="notice" aria-label="Report limitations">
+    Readiness, sizing confidence, and price completeness are independent. Lower cost does not establish a preferred target.
+    This snapshot can contain sensitive identifiers. It is not automatically safe to share. Reload to view a regenerated export.
+  </aside>
+  <nav aria-label="Report sections">
+    <a href="#comparison">Comparison</a><a href="#inventory">Inventory</a>
+    <a href="#findings">Findings</a><a href="#coverage">Rule coverage</a>
+    <a href="#performance">Performance</a><a href="#recommendations">Recommendations</a>
+    <a href="#pricing">Pricing</a><a href="#provenance">Assumptions</a>
+  </nav>
+  <main>
+    <noscript>This interactive report requires JavaScript enabled locally. The assessment.json and CSV exports contain the same review data without JavaScript.</noscript>
+    <section id="comparison" aria-labelledby="comparison-title">
+      <div class="section-heading"><h2 id="comparison-title">Target comparison</h2><span>Compatibility ≠ sizing ≠ pricing</span></div>
+      <div id="target-cards" class="target-grid"></div>
+    </section>
+    <section id="inventory" aria-labelledby="inventory-title">
+      <h2 id="inventory-title">Source inventory</h2>
+      <div id="source-summary"></div><div id="inventory-content"></div>
+    </section>
+    <section id="findings" aria-labelledby="findings-title">
+      <h2 id="findings-title">Findings and remediation</h2>
+      <p>Issue indicates a blocker; Warning is advisory. Published category is preserved separately. Missing evidence is not a pass.</p>
+      <div id="findings-filters" class="filters" role="group" aria-label="Finding filters"></div>
+      <p id="findings-count" class="muted" role="status" aria-live="polite"></p>
+      <div id="findings-table"></div>
+    </section>
+    <section id="coverage" aria-labelledby="coverage-title">
+      <h2 id="coverage-title">Rule coverage and evidence limits</h2>
+      <p>Expected mappings: 30 SQL Database rules, 34 Managed Instance rules, and the SQL VM rule pack.
+        Rows below are the supplied evaluations, not an assertion that all rules ran. Application-only queries,
+        encrypted modules, runtime-built SQL, and inaccessible evidence may require manual review.</p>
+      <div id="coverage-summary"></div>
+      <div id="coverage-filters" class="filters" role="group" aria-label="Rule coverage filters"></div>
+      <p id="coverage-count" class="muted" role="status" aria-live="polite"></p>
+      <div id="coverage-table"></div>
+    </section>
+    <section id="performance" aria-labelledby="performance-title">
+      <h2 id="performance-title">Performance capture</h2>
+      <div id="capture-summary"></div>
+      <p>Usable observation time and collection span are different. Gaps are never interpolated.
+        Charts use aggregated/downsampled report series, not the raw capture bundle.</p>
+      <div id="capture-gaps"></div><div id="metric-summary"></div>
+      <div id="performance-charts" class="chart-grid"></div>
+    </section>
+    <section id="recommendations" aria-labelledby="recommendations-title">
+      <h2 id="recommendations-title">SKU recommendations and sizing evidence</h2>
+      <p>SQL Database recommendations are per database; Managed Instance and SQL VM are per instance.
+        Technical sizing alone does not establish migration readiness or equivalent availability.</p>
+      <div id="recommendation-content"></div>
+    </section>
+    <section id="pricing" aria-labelledby="pricing-title">
+      <h2 id="pricing-title">Itemized pricing</h2>
+      <div id="price-assumptions"></div>
+      <p>PAYG = pay as you go; AHB = Azure Hybrid Benefit. Eligibility is user-asserted, not verified by this report.
+        Missing meters and unavailable quotes are not zero. Partial totals are not complete estimates.
+        Availability architecture, allowances, support, backup, networking, and other exclusions must be reviewed.</p>
+      <div id="pricing-content"></div>
+    </section>
+    <section id="provenance" aria-labelledby="provenance-title">
+      <h2 id="provenance-title">Assumptions, diagnostics, and provenance</h2>
+      <div id="provenance-content"></div>
+    </section>
+  </main>
+  <footer>Generated locally by Simple SQL Assessment. No automatic network requests. Documentation links open only when selected.</footer>
+  <script type="application/json" id="ssa-data">__SSA_DATA__</script>
+  <script>/*__SSA_SCRIPT__*/</script>
+</body>
+</html>

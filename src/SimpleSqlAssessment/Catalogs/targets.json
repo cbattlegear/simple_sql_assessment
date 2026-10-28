@@ -1,0 +1,397 @@
+{
+  "Version": "2026.10.27.3",
+  "ReviewedAt": "2026-10-27",
+  "Sources": [
+    {"Id":"sqldb","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/database/resource-limits-vcore-single-databases","Revision":"c1d92c9d18596d6c14dae6a3dfef2afeb3896a30"},
+    {"Id":"mi","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits","Revision":"c920a74181cb8f47bf9e338688de9db90d56e6fe"},
+    {"Id":"mi-nextgen","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/service-tiers-next-gen-general-purpose-use","Revision":"Reviewed 2026-10-23; GP baseline billing plus separately billed additional IOPS and memory"},
+    {"Id":"mi-regions","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/region-availability","Revision":"Reviewed 2026-10-23; memory-optimized premium and higher regional storage availability"},
+    {"Id":"edsv6","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/edsv6-series","Revision":"Reviewed 2026-10-27; all 11 base sizes, per-device NVMe capacity and separate sustained Premium SSD and Premium SSD v2/Ultra limits; duplicate E128 remote row deduplicated"},
+    {"Id":"eadsv6","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/eadsv6-series","Revision":"Reviewed 2026-10-27; all nine base sizes; 96-core memory is 672 GiB"},
+    {"Id":"edsv7","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/edsv7-series","Revision":"Reviewed 2026-10-27; all 13 base sizes through E372ids_v7"},
+    {"Id":"eadsv7","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/eadsv7-series","Revision":"Reviewed 2026-10-27; all 10 base sizes; no E20ads_v7 row"},
+    {"Id":"ebdsv6","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/ebdsv6-series","Revision":"Reviewed 2026-10-27; all 10 Preview base sizes; explicit opt-in required"},
+    {"Id":"ebdsv5","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/ebdsv5-ebsv5-series","Revision":"9ed072b872e388c785f750f825050cc26912b715; reviewed 2026-10-27; all nine sizes with separate sustained NVMe Premium SSD and Premium SSD v2/Ultra envelopes, not SCSI or burst; local temporary SSD capacity is per VM"},
+    {"Id":"vm-constrained","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/constrained-vcpu","Revision":"Reviewed 2026-10-27; parent memory/storage/I/O retained; active cores follow size-name suffix where the Edsv6 table column is inconsistent"},
+    {"Id":"vm-retail","Url":"https://prices.azure.com/api/retail/prices","Revision":"Reviewed 2026-10-27; exact eastus Consumption identities for all 99 scoped VMs, including 11 Eadsv6 constrained sizes omitted from the constrained-size overview; Ebdsv5 has ARM-formatted SKU names but display-formatted meter names and no published constrained variants; not deployment availability"},
+    {"Id":"vm-nvme","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/enable-nvme-temp-faqs","Revision":"Reviewed 2026-10-27; raw ephemeral NVMe devices require initialization and compatible OS images"},
+    {"Id":"vm-billing","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/pricing-guidance","Revision":"Reviewed 2026-10-27; SQL licensing follows active vCPUs, separately from VM/Windows compute"},
+    {"Id":"disk","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types","Revision":"fe259248937e88769914cfeb84ecbdcc6121d70e; 14 Premium SSD tiers and full configurable Premium SSD v2/Ultra limits, reviewed 2026-10-27"},
+    {"Id":"disk-v2-regions","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/disks-deploy-premium-v2","Revision":"3b7ebf1a714bfbbc44b3f6023ac4cf052afe4d42; regional matrix, zone and no-caching/OS restrictions"},
+    {"Id":"disk-ultra","Url":"https://learn.microsoft.com/en-us/azure/virtual-machines/disks-enable-ultra-ssd","Revision":"5b2b68814037b9ef80dac624f05c08cf686b0416; Ultra compatibility and subscription/zone verification"},
+    {"Id":"disk-pricing","Url":"https://azure.microsoft.com/en-us/pricing/details/managed-disks/","Revision":"Reviewed 2026-10-27; 730-hour month, Ultra size-offer capacity rounding and reservation only with no Ultra disks attached; capacity-rounding conflict with disks-types explicitly disclosed"},
+    {"Id":"disk-latency","Url":"https://learn.microsoft.com/en-us/troubleshoot/sql/database-engine/performance/troubleshoot-sql-io-performance","Revision":"01741e8522f0d68d65b65b22bf6ac4c74b4e94b4; approximate sustained 10-15ms slow-I/O threshold, not a latency SLA"},
+    {"Id":"vm-sql","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/sql-server-on-azure-vm-iaas-what-is-overview","Revision":"Reviewed 2026-10-22; SQL 2016-2025 Windows image matrix"},
+    {"Id":"retail","Url":"https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices","Revision":"de6b152c15ece5c9525b925fce0240f31547c02a"},
+    {"Id":"ahb","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/azure-hybrid-benefit","Revision":"Reviewed 2026-10-22"},
+    {"Id":"sqldb-billing","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore","Revision":"Reviewed 2026-10-23; hardware options/retirements, billable log allowance, and Hyperscale storage minimum"},
+    {"Id":"hyperscale-billing","Url":"https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale","Revision":"Reviewed 2026-10-23; no SQL license fee or AHB for new databases"},
+    {"Id":"sql2022-editions","Url":"https://learn.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2022","Revision":"Reviewed 2026-10-23; Standard edition CPU scale limit"},
+    {"Id":"sql2025-editions","Url":"https://learn.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2025","Revision":"Reviewed 2026-10-23; Standard edition CPU scale limit"}
+  ],
+  "SqlDatabaseFamilies": [
+    {
+      "ServiceTier":"GeneralPurpose","Hardware":"Gen5","SloPrefix":"GP_Gen5",
+      "SourceSection":"general-purpose---provisioned-compute---standard-series-gen5",
+      "ComputeProduct":"SQL Database Single/Elastic Pool General Purpose - Compute Gen5","ComputeArmSku":"SQLDB_GP_Compute_Gen5",
+      "Rows":[
+        {"VCores":2,"MemoryGB":10.4,"MaxDataGB":1024,"MaxLogGB":307,"MaxTempdbGB":64,"MaxIops":640,"MaxLogMiBps":9},
+        {"VCores":4,"MemoryGB":20.8,"MaxDataGB":1024,"MaxLogGB":307,"MaxTempdbGB":128,"MaxIops":1280,"MaxLogMiBps":18},
+        {"VCores":6,"MemoryGB":31.1,"MaxDataGB":1536,"MaxLogGB":461,"MaxTempdbGB":192,"MaxIops":1920,"MaxLogMiBps":27},
+        {"VCores":8,"MemoryGB":41.5,"MaxDataGB":2048,"MaxLogGB":461,"MaxTempdbGB":256,"MaxIops":2560,"MaxLogMiBps":36},
+        {"VCores":10,"MemoryGB":51.9,"MaxDataGB":2048,"MaxLogGB":461,"MaxTempdbGB":320,"MaxIops":3200,"MaxLogMiBps":45},
+        {"VCores":12,"MemoryGB":62.3,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":384,"MaxIops":3840,"MaxLogMiBps":50},
+        {"VCores":14,"MemoryGB":72.7,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":384,"MaxIops":4480,"MaxLogMiBps":50},
+        {"VCores":16,"MemoryGB":83.0,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":512,"MaxIops":5120,"MaxLogMiBps":50},
+        {"VCores":18,"MemoryGB":93.4,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":576,"MaxIops":5760,"MaxLogMiBps":50},
+        {"VCores":20,"MemoryGB":103.8,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":640,"MaxIops":6400,"MaxLogMiBps":50},
+        {"VCores":24,"MemoryGB":124.6,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":768,"MaxIops":7680,"MaxLogMiBps":50},
+        {"VCores":32,"MemoryGB":166.1,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":1024,"MaxIops":10240,"MaxLogMiBps":50},
+        {"VCores":40,"MemoryGB":207.6,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":1280,"MaxIops":12800,"MaxLogMiBps":50},
+        {"VCores":80,"MemoryGB":415.2,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":2560,"MaxIops":12800,"MaxLogMiBps":50},
+        {"VCores":128,"MemoryGB":625,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":2560,"MaxIops":16000,"MaxLogMiBps":50}
+      ]
+    },
+    {
+      "ServiceTier":"BusinessCritical","Hardware":"Gen5","SloPrefix":"BC_Gen5",
+      "SourceSection":"business-critical---provisioned-compute---standard-series-gen5",
+      "ComputeProduct":"SQL Database Single/Elastic Pool Business Critical - Compute Gen5","ComputeArmSku":"SQLDB_BC_Compute_Gen5",
+      "Rows":[
+        {"VCores":2,"MemoryGB":10.4,"MaxDataGB":1024,"MaxLogGB":307,"MaxTempdbGB":64,"MaxIops":8000,"MaxLogMiBps":24},
+        {"VCores":4,"MemoryGB":20.8,"MaxDataGB":1024,"MaxLogGB":307,"MaxTempdbGB":128,"MaxIops":16000,"MaxLogMiBps":48},
+        {"VCores":6,"MemoryGB":31.1,"MaxDataGB":1536,"MaxLogGB":461,"MaxTempdbGB":192,"MaxIops":24000,"MaxLogMiBps":72},
+        {"VCores":8,"MemoryGB":41.5,"MaxDataGB":2048,"MaxLogGB":461,"MaxTempdbGB":256,"MaxIops":32000,"MaxLogMiBps":96},
+        {"VCores":10,"MemoryGB":51.9,"MaxDataGB":2048,"MaxLogGB":461,"MaxTempdbGB":320,"MaxIops":40000,"MaxLogMiBps":96},
+        {"VCores":12,"MemoryGB":62.3,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":384,"MaxIops":48000,"MaxLogMiBps":96},
+        {"VCores":14,"MemoryGB":72.7,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":448,"MaxIops":56000,"MaxLogMiBps":96},
+        {"VCores":16,"MemoryGB":83.0,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":512,"MaxIops":64000,"MaxLogMiBps":96},
+        {"VCores":18,"MemoryGB":93.4,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":576,"MaxIops":72000,"MaxLogMiBps":96},
+        {"VCores":20,"MemoryGB":103.8,"MaxDataGB":3072,"MaxLogGB":922,"MaxTempdbGB":640,"MaxIops":80000,"MaxLogMiBps":96},
+        {"VCores":24,"MemoryGB":124.6,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":768,"MaxIops":96000,"MaxLogMiBps":96},
+        {"VCores":32,"MemoryGB":166.1,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":1024,"MaxIops":128000,"MaxLogMiBps":96},
+        {"VCores":40,"MemoryGB":207.6,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":1280,"MaxIops":160000,"MaxLogMiBps":96},
+        {"VCores":80,"MemoryGB":415.2,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":2560,"MaxIops":204800,"MaxLogMiBps":96},
+        {"VCores":128,"MemoryGB":625,"MaxDataGB":4096,"MaxLogGB":1024,"MaxTempdbGB":2560,"MaxIops":327680,"MaxLogMiBps":96}
+      ]
+    },
+    {
+      "ServiceTier":"Hyperscale","Hardware":"Gen5","SloPrefix":"HS_Gen5","MaxDataGB":131072,
+      "SourceSection":"hyperscale---provisioned-compute---standard-series-gen5",
+      "ComputeProduct":"SQL Database SingleDB/Elastic Pool Hyperscale - Compute Gen5","ComputeArmSku":"SQLDB_HyperScale_Compute_Gen5",
+      "Rows":[
+        {"VCores":2,"MemoryGB":10.4,"MaxTempdbGB":64,"MaxLocalIops":8000,"MaxLogMiBps":100},
+        {"VCores":4,"MemoryGB":20.8,"MaxTempdbGB":128,"MaxLocalIops":16000,"MaxLogMiBps":100},
+        {"VCores":6,"MemoryGB":31.1,"MaxTempdbGB":192,"MaxLocalIops":24000,"MaxLogMiBps":100},
+        {"VCores":8,"MemoryGB":41.5,"MaxTempdbGB":256,"MaxLocalIops":32000,"MaxLogMiBps":100},
+        {"VCores":10,"MemoryGB":51.9,"MaxTempdbGB":320,"MaxLocalIops":40000,"MaxLogMiBps":100},
+        {"VCores":12,"MemoryGB":62.3,"MaxTempdbGB":384,"MaxLocalIops":48000,"MaxLogMiBps":100},
+        {"VCores":14,"MemoryGB":72.7,"MaxTempdbGB":448,"MaxLocalIops":56000,"MaxLogMiBps":100},
+        {"VCores":16,"MemoryGB":83.0,"MaxTempdbGB":512,"MaxLocalIops":64000,"MaxLogMiBps":100},
+        {"VCores":18,"MemoryGB":93.4,"MaxTempdbGB":576,"MaxLocalIops":72000,"MaxLogMiBps":100},
+        {"VCores":20,"MemoryGB":103.8,"MaxTempdbGB":640,"MaxLocalIops":80000,"MaxLogMiBps":100},
+        {"VCores":24,"MemoryGB":124.6,"MaxTempdbGB":768,"MaxLocalIops":96000,"MaxLogMiBps":100},
+        {"VCores":32,"MemoryGB":166.1,"MaxTempdbGB":1024,"MaxLocalIops":128000,"MaxLogMiBps":100},
+        {"VCores":40,"MemoryGB":207.6,"MaxTempdbGB":1280,"MaxLocalIops":160000,"MaxLogMiBps":100},
+        {"VCores":80,"MemoryGB":415.2,"MaxTempdbGB":2560,"MaxLocalIops":204800,"MaxLogMiBps":100}
+      ]
+    },
+    {
+      "ServiceTier":"Hyperscale","Hardware":"Premium-series","SloPrefix":"HS_PRMS","MaxDataGB":131072,
+      "SourceSection":"hyperscale---provisioned-compute---premium-series",
+      "ComputeProduct":"SQL Database Single/Elastic Pool Hyperscale - Premium Series Compute","ComputeArmSku":"SQLDB_HyperScale_Compute_Premium",
+      "Rows":[
+        {"VCores":2,"MemoryGB":10.4,"MaxTempdbGB":64,"MaxLocalIops":8500,"MaxLogMiBps":150},
+        {"VCores":4,"MemoryGB":20.8,"MaxTempdbGB":128,"MaxLocalIops":17000,"MaxLogMiBps":150},
+        {"VCores":6,"MemoryGB":31.1,"MaxTempdbGB":192,"MaxLocalIops":25500,"MaxLogMiBps":150},
+        {"VCores":8,"MemoryGB":41.5,"MaxTempdbGB":256,"MaxLocalIops":34000,"MaxLogMiBps":150},
+        {"VCores":10,"MemoryGB":51.9,"MaxTempdbGB":320,"MaxLocalIops":42500,"MaxLogMiBps":150},
+        {"VCores":12,"MemoryGB":62.3,"MaxTempdbGB":384,"MaxLocalIops":51000,"MaxLogMiBps":150},
+        {"VCores":14,"MemoryGB":72.7,"MaxTempdbGB":448,"MaxLocalIops":59500,"MaxLogMiBps":150},
+        {"VCores":16,"MemoryGB":83.0,"MaxTempdbGB":512,"MaxLocalIops":68000,"MaxLogMiBps":150},
+        {"VCores":18,"MemoryGB":93.4,"MaxTempdbGB":576,"MaxLocalIops":76500,"MaxLogMiBps":150},
+        {"VCores":20,"MemoryGB":103.8,"MaxTempdbGB":640,"MaxLocalIops":85000,"MaxLogMiBps":150},
+        {"VCores":24,"MemoryGB":124.6,"MaxTempdbGB":768,"MaxLocalIops":102000,"MaxLogMiBps":150},
+        {"VCores":32,"MemoryGB":166.1,"MaxTempdbGB":1024,"MaxLocalIops":136000,"MaxLogMiBps":150},
+        {"VCores":40,"MemoryGB":207.6,"MaxTempdbGB":1280,"MaxLocalIops":170000,"MaxLogMiBps":150},
+        {"VCores":64,"MemoryGB":332.2,"MaxTempdbGB":2048,"MaxLocalIops":272000,"MaxLogMiBps":150},
+        {"VCores":80,"MemoryGB":415.2,"MaxTempdbGB":2560,"MaxLocalIops":340000,"MaxLogMiBps":150},
+        {"VCores":128,"MemoryGB":625,"MaxTempdbGB":4096,"MaxLocalIops":544000,"MaxLogMiBps":150},
+        {"VCores":160,"MemoryGB":830.4,"MaxTempdbGB":4096,"MaxLocalIops":680000,"MaxLogMiBps":150},
+        {"VCores":192,"MemoryGB":843.7,"MaxTempdbGB":4096,"MaxLocalIops":816000,"MaxLogMiBps":150}
+      ]
+    },
+    {
+      "ServiceTier":"Hyperscale","Hardware":"Premium-series-memory-optimized","SloPrefix":"HS_MOPRMS","MaxDataGB":131072,
+      "SourceSection":"hyperscale---provisioned-compute---premium-series-memory-optimized",
+      "ComputeProduct":"SQL Database Single/Elastic Pool Hyperscale - Premium Series Memory Optimized Compute","ComputeArmSku":"SQLDB_HyperScale_Compute_Premium_Memory_Optimized",
+      "Rows":[
+        {"VCores":2,"MemoryGB":20.8,"MaxTempdbGB":64,"MaxLocalIops":11000,"MaxLogMiBps":150},
+        {"VCores":4,"MemoryGB":41.5,"MaxTempdbGB":128,"MaxLocalIops":22000,"MaxLogMiBps":150},
+        {"VCores":6,"MemoryGB":62.3,"MaxTempdbGB":192,"MaxLocalIops":33000,"MaxLogMiBps":150},
+        {"VCores":8,"MemoryGB":83.0,"MaxTempdbGB":256,"MaxLocalIops":44000,"MaxLogMiBps":150},
+        {"VCores":10,"MemoryGB":103.8,"MaxTempdbGB":320,"MaxLocalIops":55000,"MaxLogMiBps":150},
+        {"VCores":12,"MemoryGB":124.6,"MaxTempdbGB":384,"MaxLocalIops":66000,"MaxLogMiBps":150},
+        {"VCores":14,"MemoryGB":145.3,"MaxTempdbGB":448,"MaxLocalIops":77000,"MaxLogMiBps":150},
+        {"VCores":16,"MemoryGB":166.1,"MaxTempdbGB":512,"MaxLocalIops":88000,"MaxLogMiBps":150},
+        {"VCores":18,"MemoryGB":186.9,"MaxTempdbGB":576,"MaxLocalIops":99000,"MaxLogMiBps":150},
+        {"VCores":20,"MemoryGB":207.6,"MaxTempdbGB":640,"MaxLocalIops":111000,"MaxLogMiBps":150},
+        {"VCores":24,"MemoryGB":249.1,"MaxTempdbGB":768,"MaxLocalIops":132000,"MaxLogMiBps":150},
+        {"VCores":32,"MemoryGB":332.2,"MaxTempdbGB":1024,"MaxLocalIops":176000,"MaxLogMiBps":150},
+        {"VCores":40,"MemoryGB":415.2,"MaxTempdbGB":1280,"MaxLocalIops":222000,"MaxLogMiBps":150},
+        {"VCores":64,"MemoryGB":664.4,"MaxTempdbGB":2048,"MaxLocalIops":352000,"MaxLogMiBps":150},
+        {"VCores":80,"MemoryGB":830.5,"MaxTempdbGB":2560,"MaxLocalIops":440000,"MaxLogMiBps":150}
+      ]
+    }
+  ],
+  "ManagedInstanceFamilies": [
+    {
+      "ServiceTier":"GeneralPurpose","Hardware":"Gen5","MemoryPerCore":5.1,"MemoryCapGB":408,
+      "Cores":[4,8,16,24,32,40,64,80],
+      "StorageLimits":[
+        {"Cores":[4],"MaxDataGB":2048},{"Cores":[8],"MaxDataGB":8192},
+        {"Cores":[16,24,32,40,64,80],"MaxDataGB":16384}
+      ]
+    },
+    {
+      "ServiceTier":"GeneralPurpose","Hardware":"Premium-series","MemoryPerCore":7,"MemoryCapGB":560,
+      "Cores":[4,8,16,24,32,40,64,80],
+      "StorageLimits":[
+        {"Cores":[4],"MaxDataGB":2048},{"Cores":[8],"MaxDataGB":8192},
+        {"Cores":[16,24,32,40,64,80],"MaxDataGB":16384}
+      ]
+    },
+    {
+      "ServiceTier":"GeneralPurpose","Hardware":"Premium-series-memory-optimized","MemoryPerCore":13.6,"MemoryCapGB":870.4,
+      "Cores":[4,8,16,24,32,40,64,80],
+      "StorageLimits":[
+        {"Cores":[4],"MaxDataGB":2048},{"Cores":[8],"MaxDataGB":8192},
+        {"Cores":[16,24,32,40,64,80],"MaxDataGB":16384}
+      ]
+    },
+    {
+      "ServiceTier":"NextGenGeneralPurpose","Hardware":"Gen5","MemoryPerCore":5.1,"MemoryCapGB":408,
+      "Cores":[4,8,16,24,32,40,64,80],
+      "StorageLimits":[
+        {"Cores":[4],"MaxDataGB":2048},{"Cores":[8],"MaxDataGB":8192},
+        {"Cores":[16,24],"MaxDataGB":16384},{"Cores":[32,40,64,80],"MaxDataGB":32768}
+      ]
+    },
+    {
+      "ServiceTier":"NextGenGeneralPurpose","Hardware":"Premium-series","MemoryPerCore":7,"MemoryCapGB":560,
+      "Cores":[4,6,8,10,12,16,20,24,32,40,48,56,64,80,96,128],
+      "StorageLimits":[
+        {"Cores":[4,6],"MaxDataGB":2048},{"Cores":[8,10,12],"MaxDataGB":8192},
+        {"Cores":[16,20,24],"MaxDataGB":16384},{"Cores":[32,40,48,56,64,80,96,128],"MaxDataGB":32768}
+      ]
+    },
+    {
+      "ServiceTier":"NextGenGeneralPurpose","Hardware":"Premium-series-memory-optimized","MemoryPerCore":13.6,"MemoryCapGB":870.4,
+      "Cores":[4,6,8,10,12,16,20,24,32,40,48,56,64,80,96,128],
+      "StorageLimits":[
+        {"Cores":[4,6],"MaxDataGB":2048},{"Cores":[8,10,12],"MaxDataGB":8192},
+        {"Cores":[16,20,24],"MaxDataGB":16384},{"Cores":[32,40,48,56,64,80,96,128],"MaxDataGB":32768}
+      ]
+    },
+    {
+      "ServiceTier":"BusinessCritical","Hardware":"Gen5","MemoryPerCore":5.1,"MemoryCapGB":408,
+      "Cores":[4,8,16,24,32,40,64,80],
+      "StorageLimits":[
+        {"Cores":[4,8,16],"MaxDataGB":1024},{"Cores":[24],"MaxDataGB":2048},
+        {"Cores":[32,40,64,80],"MaxDataGB":4096}
+      ]
+    },
+    {
+      "ServiceTier":"BusinessCritical","Hardware":"Premium-series","MemoryPerCore":7,"MemoryCapGB":560,
+      "Cores":[4,6,8,10,12,16,20,24,32,40,48,56,64,80,96,128],
+      "StorageLimits":[
+        {"Cores":[4,6],"MaxDataGB":1024},{"Cores":[8,10,12],"MaxDataGB":2048},
+        {"Cores":[16,20],"MaxDataGB":4096},{"Cores":[24,32,40,48,56],"MaxDataGB":5632},
+        {"Cores":[64,80,96,128],"MaxDataGB":5632,"RegionalMaxDataGB":16384}
+      ]
+    },
+    {
+      "ServiceTier":"BusinessCritical","Hardware":"Premium-series-memory-optimized","MemoryPerCore":13.6,"MemoryCapGB":870.4,
+      "Cores":[4,6,8,10,12,16,20,24,32,40,48,56,64,80,96,128],
+      "StorageLimits":[
+        {"Cores":[4,6],"MaxDataGB":1024},{"Cores":[8,10,12],"MaxDataGB":2048},
+        {"Cores":[16,20],"MaxDataGB":4096},{"Cores":[24],"MaxDataGB":5632},
+        {"Cores":[32,40],"MaxDataGB":5632,"RegionalMaxDataGB":8192},
+        {"Cores":[48,56],"MaxDataGB":12288},{"Cores":[64,80,96,128],"MaxDataGB":16384}
+      ]
+    }
+  ],
+  "ManagedInstanceNextGenIo": [
+    {"Cores":[4],"MaxIops":6400,"MaxThroughputMBps":145},
+    {"Cores":[6],"MaxIops":9600,"MaxThroughputMBps":217},
+    {"Cores":[8],"MaxIops":12800,"MaxThroughputMBps":290},
+    {"Cores":[10],"MaxIops":16000,"MaxThroughputMBps":367},
+    {"Cores":[12],"MaxIops":19200,"MaxThroughputMBps":445},
+    {"Cores":[16],"MaxIops":25600,"MaxThroughputMBps":600},
+    {"Cores":[20],"MaxIops":32000,"MaxThroughputMBps":665},
+    {"Cores":[24],"MaxIops":38400,"MaxThroughputMBps":730},
+    {"Cores":[32],"MaxIops":51200,"MaxThroughputMBps":865},
+    {"Cores":[40],"MaxIops":64000,"MaxThroughputMBps":1152},
+    {"Cores":[48],"MaxIops":76800,"MaxThroughputMBps":1152},
+    {"Cores":[56,64,80,96,128],"MaxIops":80000,"MaxThroughputMBps":1200}
+  ],
+  "ManagedInstanceFlexibleMemory": [
+    {"VCores":4,"MemoryGB":[28,32,40,48]},
+    {"VCores":6,"MemoryGB":[42,48,60,72]},
+    {"VCores":8,"MemoryGB":[56,64,80,96]},
+    {"VCores":10,"MemoryGB":[70,80,100,120]},
+    {"VCores":12,"MemoryGB":[84,96,120,144]},
+    {"VCores":16,"MemoryGB":[112,128,160,192]},
+    {"VCores":20,"MemoryGB":[140,160,200,240]},
+    {"VCores":24,"MemoryGB":[168,192,240,288]},
+    {"VCores":32,"MemoryGB":[224,256,320,384]},
+    {"VCores":40,"MemoryGB":[280,320,400,480]},
+    {"VCores":48,"MemoryGB":[336,384,480]},
+    {"VCores":56,"MemoryGB":[392,448]},
+    {"VCores":64,"MemoryGB":[448]},
+    {"VCores":80,"MemoryGB":[560]},
+    {"VCores":96,"MemoryGB":[560]},
+    {"VCores":128,"MemoryGB":[560]}
+  ],
+  "ManagedInstancePremiumRegions": [
+    "brazilsouth","canadacentral","canadaeast","centralus","eastus","eastus2",
+    "northcentralus","southcentralus","westcentralus","westus","westus2",
+    "eastasia","southeastasia","australiaeast","australiasoutheast","chinanorth3",
+    "centralindia","japaneast","japanwest","northeurope","westeurope","francecentral",
+    "germanywestcentral","italynorth","polandcentral","qatarcentral","swedencentral",
+    "switzerlandnorth","uksouth"
+  ],
+  "DiskProfiles": [
+    {"Id":"PremiumSSD","Configurable":false},
+    {
+      "Id":"PremiumSSDv2","Configurable":true,"ArmSku":"PremiumV2_LRS",
+      "MinSizeGB":1,"MaxSizeGB":65536,"MinIops":3000,"MaxIops":80000,"IopsPerGB":500,
+      "MinThroughputMBps":125,"MaxThroughputMBps":2000,"IncludedIops":3000,"IncludedThroughputMBps":125,
+      "Product":"Azure Premium SSD v2","Sku":"Premium LRS","MeterPrefix":"Premium LRS",
+      "Regions":["australiacentral2","australiaeast","australiasoutheast","austriaeast","brazilsouth","brazilsoutheast","canadacentral","canadaeast","centralindia","centralus","chinanorth3","eastasia","eastus","eastus2","francecentral","germanynorth","germanywestcentral","indonesiacentral","israelcentral","italynorth","japaneast","japanwest","koreacentral","malaysiawest","mexicocentral","newzealandnorth","northcentralus","northeurope","norwayeast","norwaywest","polandcentral","southafricanorth","southcentralus","southindia","southeastasia","spaincentral","swedencentral","switzerlandnorth","switzerlandwest","taiwannorth","uaenorth","uksouth","ukwest","usgovarizona","usgovvirginia","westcentralus","westeurope","westus","westus2","westus3"]
+    },
+    {
+      "Id":"UltraSSD","Configurable":true,"ArmSku":"UltraSSD_LRS",
+      "MinSizeGB":4,"MaxSizeGB":65536,"MinIops":100,"MaxIops":400000,"IopsPerGB":1000,
+      "MinThroughputMBps":1,"MaxThroughputMBps":10000,"IncludedIops":0,"IncludedThroughputMBps":0,
+      "Product":"Ultra Disks","Sku":"Ultra LRS","MeterPrefix":"Ultra LRS",
+      "BillingSizesGB":[4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536],
+      "Regions":["australiacentral","australiacentral2","australiaeast","australiasoutheast","austriaeast","brazilsouth","brazilsoutheast","canadacentral","canadaeast","centralindia","centralus","chinanorth3","eastasia","eastus","eastus2","francecentral","germanywestcentral","indonesiacentral","italynorth","japaneast","japanwest","koreacentral","koreasouth","malaysiawest","newzealandnorth","northcentralus","northeurope","norwaywest","polandcentral","qatarcentral","southafricanorth","southcentralus","southeastasia","spaincentral","swedencentral","switzerlandnorth","taiwannorth","uaecentral","uaenorth","uksouth","ukwest","usgovarizona","usgovtexas","usgovvirginia","westeurope","westus","westus2","westus3"]
+    }
+  ],
+  "VmFamilies": [
+    {
+      "Hardware":"Edsv7","Generation":7,"Preview":false,"LocalTempDiskType":"NVMe","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Edsv7-series Linux","WindowsProduct":"Virtual Machines Edsv7-series Windows","MeterFormat":"ArmSku",
+      "Rows":[
+        {"VmSize":"Standard_E2ds_v7","VCores":2,"MemoryGB":16,"MaxDataDisks":10,"MaxIops":4000,"MaxThroughputMBps":115,"MaxAdvancedIops":5000,"MaxAdvancedThroughputMBps":135,"LocalTempDisks":1,"LocalTempDiskGB":110},
+        {"VmSize":"Standard_E4ds_v7","VCores":4,"MemoryGB":32,"MaxDataDisks":12,"MaxIops":8000,"MaxThroughputMBps":230,"MaxAdvancedIops":10000,"MaxAdvancedThroughputMBps":270,"LocalTempDisks":1,"LocalTempDiskGB":220},
+        {"VmSize":"Standard_E8ds_v7","VCores":8,"MemoryGB":64,"MaxDataDisks":26,"MaxIops":16000,"MaxThroughputMBps":460,"MaxAdvancedIops":20000,"MaxAdvancedThroughputMBps":540,"LocalTempDisks":1,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E16ds_v7","VCores":16,"MemoryGB":128,"MaxDataDisks":48,"MaxIops":32000,"MaxThroughputMBps":940,"MaxAdvancedIops":40000,"MaxAdvancedThroughputMBps":1080,"LocalTempDisks":2,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E20ds_v7","VCores":20,"MemoryGB":160,"MaxDataDisks":48,"MaxIops":40000,"MaxThroughputMBps":1150,"MaxAdvancedIops":50000,"MaxAdvancedThroughputMBps":1350,"LocalTempDisks":2,"LocalTempDiskGB":550},
+        {"VmSize":"Standard_E32ds_v7","VCores":32,"MemoryGB":256,"MaxDataDisks":64,"MaxIops":64000,"MaxThroughputMBps":1885,"MaxAdvancedIops":80000,"MaxAdvancedThroughputMBps":2160,"LocalTempDisks":4,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E48ds_v7","VCores":48,"MemoryGB":384,"MaxDataDisks":64,"MaxIops":96000,"MaxThroughputMBps":2830,"MaxAdvancedIops":120000,"MaxAdvancedThroughputMBps":3285,"LocalTempDisks":6,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E64ds_v7","VCores":64,"MemoryGB":512,"MaxDataDisks":64,"MaxIops":128000,"MaxThroughputMBps":3775,"MaxAdvancedIops":160000,"MaxAdvancedThroughputMBps":4320,"LocalTempDisks":4,"LocalTempDiskGB":880},
+        {"VmSize":"Standard_E96ds_v7","VCores":96,"MemoryGB":768,"MaxDataDisks":64,"MaxIops":192000,"MaxThroughputMBps":5665,"MaxAdvancedIops":240000,"MaxAdvancedThroughputMBps":6570,"LocalTempDisks":6,"LocalTempDiskGB":880},
+        {"VmSize":"Standard_E128ds_v7","VCores":128,"MemoryGB":1024,"MaxDataDisks":64,"MaxIops":204800,"MaxThroughputMBps":7550,"MaxAdvancedIops":320000,"MaxAdvancedThroughputMBps":8640,"LocalTempDisks":4,"LocalTempDiskGB":1760},
+        {"VmSize":"Standard_E192ds_v7","VCores":192,"MemoryGB":1536,"MaxDataDisks":64,"MaxIops":307200,"MaxThroughputMBps":11325,"MaxAdvancedIops":480000,"MaxAdvancedThroughputMBps":13140,"LocalTempDisks":6,"LocalTempDiskGB":1760},
+        {"VmSize":"Standard_E248ds_v7","VCores":248,"MemoryGB":1888,"MaxDataDisks":64,"MaxIops":396800,"MaxThroughputMBps":13145,"MaxAdvancedIops":620000,"MaxAdvancedThroughputMBps":16740,"LocalTempDisks":5,"LocalTempDiskGB":2816},
+        {"VmSize":"Standard_E372ids_v7","VCores":372,"MemoryGB":2832,"MaxDataDisks":64,"MaxIops":500000,"MaxThroughputMBps":16000,"MaxAdvancedIops":800000,"MaxAdvancedThroughputMBps":20000,"LocalTempDisks":6,"LocalTempDiskGB":3520}
+      ]
+    },
+    {
+      "Hardware":"Eadsv7","Generation":7,"Preview":false,"LocalTempDiskType":"NVMe","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Eadsv7 Series","WindowsProduct":"Virtual Machines Eadsv7 Series Windows","MeterFormat":"DisplayName",
+      "Rows":[
+        {"VmSize":"Standard_E2ads_v7","VCores":2,"MemoryGB":16,"MaxDataDisks":10,"MaxIops":4000,"MaxThroughputMBps":118,"MaxAdvancedIops":4400,"MaxAdvancedThroughputMBps":136,"LocalTempDisks":1,"LocalTempDiskGB":110},
+        {"VmSize":"Standard_E4ads_v7","VCores":4,"MemoryGB":32,"MaxDataDisks":12,"MaxIops":8000,"MaxThroughputMBps":234,"MaxAdvancedIops":8800,"MaxAdvancedThroughputMBps":273,"LocalTempDisks":1,"LocalTempDiskGB":220,"ConstrainedVCores":[2]},
+        {"VmSize":"Standard_E8ads_v7","VCores":8,"MemoryGB":64,"MaxDataDisks":26,"MaxIops":16000,"MaxThroughputMBps":468,"MaxAdvancedIops":17600,"MaxAdvancedThroughputMBps":547,"LocalTempDisks":1,"LocalTempDiskGB":440,"ConstrainedVCores":[2,4]},
+        {"VmSize":"Standard_E16ads_v7","VCores":16,"MemoryGB":128,"MaxDataDisks":48,"MaxIops":32000,"MaxThroughputMBps":936,"MaxAdvancedIops":35200,"MaxAdvancedThroughputMBps":1095,"LocalTempDisks":2,"LocalTempDiskGB":440,"ConstrainedVCores":[4,8]},
+        {"VmSize":"Standard_E32ads_v7","VCores":32,"MemoryGB":256,"MaxDataDisks":64,"MaxIops":64000,"MaxThroughputMBps":1872,"MaxAdvancedIops":70400,"MaxAdvancedThroughputMBps":2191,"LocalTempDisks":4,"LocalTempDiskGB":440,"ConstrainedVCores":[8,16]},
+        {"VmSize":"Standard_E48ads_v7","VCores":48,"MemoryGB":384,"MaxDataDisks":64,"MaxIops":96000,"MaxThroughputMBps":2808,"MaxAdvancedIops":105600,"MaxAdvancedThroughputMBps":3291,"LocalTempDisks":6,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E64ads_v7","VCores":64,"MemoryGB":512,"MaxDataDisks":64,"MaxIops":128000,"MaxThroughputMBps":3744,"MaxAdvancedIops":140800,"MaxAdvancedThroughputMBps":4382,"LocalTempDisks":4,"LocalTempDiskGB":880,"ConstrainedVCores":[16,32]},
+        {"VmSize":"Standard_E96ads_v7","VCores":96,"MemoryGB":768,"MaxDataDisks":64,"MaxIops":192000,"MaxThroughputMBps":5663,"MaxAdvancedIops":211200,"MaxAdvancedThroughputMBps":6573,"LocalTempDisks":6,"LocalTempDiskGB":880,"ConstrainedVCores":[24,48]},
+        {"VmSize":"Standard_E128ads_v7","VCores":128,"MemoryGB":1024,"MaxDataDisks":64,"MaxIops":204800,"MaxThroughputMBps":7488,"MaxAdvancedIops":281600,"MaxAdvancedThroughputMBps":8764,"LocalTempDisks":4,"LocalTempDiskGB":1760,"ConstrainedVCores":[32,64]},
+        {"VmSize":"Standard_E160ads_v7","VCores":160,"MemoryGB":1280,"MaxDataDisks":64,"MaxIops":212000,"MaxThroughputMBps":10344,"MaxAdvancedIops":310000,"MaxAdvancedThroughputMBps":10356,"LocalTempDisks":4,"LocalTempDiskGB":2200}
+      ]
+    },
+    {
+      "Hardware":"Edsv6","Generation":6,"Preview":false,"LocalTempDiskType":"NVMe","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Edsv6 Series","WindowsProduct":"Virtual Machines Edsv6 Series Windows","MeterFormat":"DisplayName",
+      "Rows":[
+        {"VmSize":"Standard_E2ds_v6","VCores":2,"MemoryGB":16,"MaxDataDisks":8,"MaxIops":3750,"MaxThroughputMBps":106,"MaxAdvancedIops":4167,"MaxAdvancedThroughputMBps":124,"LocalTempDisks":1,"LocalTempDiskGB":110},
+        {"VmSize":"Standard_E4ds_v6","VCores":4,"MemoryGB":32,"MaxDataDisks":12,"MaxIops":6400,"MaxThroughputMBps":212,"MaxAdvancedIops":8333,"MaxAdvancedThroughputMBps":248,"LocalTempDisks":1,"LocalTempDiskGB":220,"ConstrainedVCores":[2]},
+        {"VmSize":"Standard_E8ds_v6","VCores":8,"MemoryGB":64,"MaxDataDisks":24,"MaxIops":12800,"MaxThroughputMBps":424,"MaxAdvancedIops":16667,"MaxAdvancedThroughputMBps":496,"LocalTempDisks":1,"LocalTempDiskGB":440,"ConstrainedVCores":[2,4]},
+        {"VmSize":"Standard_E16ds_v6","VCores":16,"MemoryGB":128,"MaxDataDisks":48,"MaxIops":25600,"MaxThroughputMBps":848,"MaxAdvancedIops":33333,"MaxAdvancedThroughputMBps":992,"LocalTempDisks":2,"LocalTempDiskGB":440,"ConstrainedVCores":[4,8]},
+        {"VmSize":"Standard_E20ds_v6","VCores":20,"MemoryGB":160,"MaxDataDisks":48,"MaxIops":32000,"MaxThroughputMBps":1060,"MaxAdvancedIops":41667,"MaxAdvancedThroughputMBps":1240,"LocalTempDisks":2,"LocalTempDiskGB":550},
+        {"VmSize":"Standard_E32ds_v6","VCores":32,"MemoryGB":256,"MaxDataDisks":64,"MaxIops":51200,"MaxThroughputMBps":1696,"MaxAdvancedIops":66667,"MaxAdvancedThroughputMBps":1984,"LocalTempDisks":4,"LocalTempDiskGB":440,"ConstrainedVCores":[8,16]},
+        {"VmSize":"Standard_E48ds_v6","VCores":48,"MemoryGB":384,"MaxDataDisks":64,"MaxIops":76800,"MaxThroughputMBps":2544,"MaxAdvancedIops":100000,"MaxAdvancedThroughputMBps":2976,"LocalTempDisks":6,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E64ds_v6","VCores":64,"MemoryGB":512,"MaxDataDisks":64,"MaxIops":102400,"MaxThroughputMBps":3392,"MaxAdvancedIops":133333,"MaxAdvancedThroughputMBps":3969,"LocalTempDisks":4,"LocalTempDiskGB":880,"ConstrainedVCores":[16,32]},
+        {"VmSize":"Standard_E96ds_v6","VCores":96,"MemoryGB":768,"MaxDataDisks":64,"MaxIops":153600,"MaxThroughputMBps":5088,"MaxAdvancedIops":200000,"MaxAdvancedThroughputMBps":5953,"LocalTempDisks":6,"LocalTempDiskGB":880,"ConstrainedVCores":[24,48]},
+        {"VmSize":"Standard_E128ds_v6","VCores":128,"MemoryGB":1024,"MaxDataDisks":64,"MaxIops":204800,"MaxThroughputMBps":6782,"MaxAdvancedIops":266667,"MaxAdvancedThroughputMBps":7935,"LocalTempDisks":4,"LocalTempDiskGB":1760,"ConstrainedVCores":[32,64]},
+        {"VmSize":"Standard_E192ids_v6","VCores":192,"MemoryGB":1832,"MaxDataDisks":64,"MaxIops":260000,"MaxThroughputMBps":12000,"MaxAdvancedIops":400000,"MaxAdvancedThroughputMBps":12000,"LocalTempDisks":6,"LocalTempDiskGB":1760}
+      ]
+    },
+    {
+      "Hardware":"Eadsv6","Generation":6,"Preview":false,"LocalTempDiskType":"NVMe","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Eadsv6 Series","WindowsProduct":"Virtual Machines Eadsv6 Series Windows","MeterFormat":"DisplayName",
+      "Rows":[
+        {"VmSize":"Standard_E2ads_v6","VCores":2,"MemoryGB":16,"MaxDataDisks":4,"MaxIops":4000,"MaxThroughputMBps":90,"MaxAdvancedIops":4000,"MaxAdvancedThroughputMBps":90,"LocalTempDisks":1,"LocalTempDiskGB":110},
+        {"VmSize":"Standard_E4ads_v6","VCores":4,"MemoryGB":32,"MaxDataDisks":8,"MaxIops":7600,"MaxThroughputMBps":180,"MaxAdvancedIops":7600,"MaxAdvancedThroughputMBps":180,"LocalTempDisks":1,"LocalTempDiskGB":220,"ConstrainedVCores":[2]},
+        {"VmSize":"Standard_E8ads_v6","VCores":8,"MemoryGB":64,"MaxDataDisks":16,"MaxIops":15200,"MaxThroughputMBps":360,"MaxAdvancedIops":15200,"MaxAdvancedThroughputMBps":360,"LocalTempDisks":1,"LocalTempDiskGB":440,"ConstrainedVCores":[2,4]},
+        {"VmSize":"Standard_E16ads_v6","VCores":16,"MemoryGB":128,"MaxDataDisks":32,"MaxIops":30400,"MaxThroughputMBps":720,"MaxAdvancedIops":30400,"MaxAdvancedThroughputMBps":720,"LocalTempDisks":2,"LocalTempDiskGB":440,"ConstrainedVCores":[4,8]},
+        {"VmSize":"Standard_E20ads_v6","VCores":20,"MemoryGB":160,"MaxDataDisks":32,"MaxIops":38000,"MaxThroughputMBps":900,"MaxAdvancedIops":38000,"MaxAdvancedThroughputMBps":900,"LocalTempDisks":2,"LocalTempDiskGB":550},
+        {"VmSize":"Standard_E32ads_v6","VCores":32,"MemoryGB":256,"MaxDataDisks":32,"MaxIops":57600,"MaxThroughputMBps":1440,"MaxAdvancedIops":57600,"MaxAdvancedThroughputMBps":1440,"LocalTempDisks":4,"LocalTempDiskGB":440,"ConstrainedVCores":[8,16]},
+        {"VmSize":"Standard_E48ads_v6","VCores":48,"MemoryGB":384,"MaxDataDisks":32,"MaxIops":86400,"MaxThroughputMBps":2160,"MaxAdvancedIops":86400,"MaxAdvancedThroughputMBps":2160,"LocalTempDisks":6,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E64ads_v6","VCores":64,"MemoryGB":512,"MaxDataDisks":32,"MaxIops":115200,"MaxThroughputMBps":2880,"MaxAdvancedIops":115200,"MaxAdvancedThroughputMBps":2880,"LocalTempDisks":4,"LocalTempDiskGB":880,"ConstrainedVCores":[16,32]},
+        {"VmSize":"Standard_E96ads_v6","VCores":96,"MemoryGB":672,"MaxDataDisks":32,"MaxIops":175000,"MaxThroughputMBps":4320,"MaxAdvancedIops":175000,"MaxAdvancedThroughputMBps":4320,"LocalTempDisks":6,"LocalTempDiskGB":880,"ConstrainedVCores":[24,48]}
+      ]
+    },
+    {
+      "Hardware":"Ebdsv6","Generation":6,"Preview":true,"LocalTempDiskType":"NVMe","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Ebdsv6-Series Linux","WindowsProduct":"Virtual Machines Ebdsv6-Series Windows","MeterFormat":"ArmSku",
+      "Rows":[
+        {"VmSize":"Standard_E2bds_v6","VCores":2,"MemoryGB":16,"MaxDataDisks":8,"MaxIops":8800,"MaxThroughputMBps":253,"MaxAdvancedIops":13200,"MaxAdvancedThroughputMBps":330,"LocalTempDisks":1,"LocalTempDiskGB":110},
+        {"VmSize":"Standard_E4bds_v6","VCores":4,"MemoryGB":32,"MaxDataDisks":12,"MaxIops":17600,"MaxThroughputMBps":506,"MaxAdvancedIops":23540,"MaxAdvancedThroughputMBps":660,"LocalTempDisks":1,"LocalTempDiskGB":220},
+        {"VmSize":"Standard_E8bds_v6","VCores":8,"MemoryGB":64,"MaxDataDisks":24,"MaxIops":36300,"MaxThroughputMBps":1023,"MaxAdvancedIops":48620,"MaxAdvancedThroughputMBps":1320,"LocalTempDisks":1,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E16bds_v6","VCores":16,"MemoryGB":128,"MaxDataDisks":48,"MaxIops":72600,"MaxThroughputMBps":1980,"MaxAdvancedIops":97240,"MaxAdvancedThroughputMBps":2530,"LocalTempDisks":2,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E32bds_v6","VCores":32,"MemoryGB":256,"MaxDataDisks":64,"MaxIops":143000,"MaxThroughputMBps":4070,"MaxAdvancedIops":191620,"MaxAdvancedThroughputMBps":5280,"LocalTempDisks":4,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E48bds_v6","VCores":48,"MemoryGB":384,"MaxDataDisks":64,"MaxIops":209000,"MaxThroughputMBps":6160,"MaxAdvancedIops":278630,"MaxAdvancedThroughputMBps":8030,"LocalTempDisks":6,"LocalTempDiskGB":440},
+        {"VmSize":"Standard_E64bds_v6","VCores":64,"MemoryGB":512,"MaxDataDisks":64,"MaxIops":242000,"MaxThroughputMBps":6600,"MaxAdvancedIops":324280,"MaxAdvancedThroughputMBps":8580,"LocalTempDisks":4,"LocalTempDiskGB":880},
+        {"VmSize":"Standard_E96bds_v6","VCores":96,"MemoryGB":768,"MaxDataDisks":64,"MaxIops":286000,"MaxThroughputMBps":8250,"MaxAdvancedIops":429000,"MaxAdvancedThroughputMBps":9900,"LocalTempDisks":6,"LocalTempDiskGB":880},
+        {"VmSize":"Standard_E128bds_v6","VCores":128,"MemoryGB":1024,"MaxDataDisks":64,"MaxIops":330000,"MaxThroughputMBps":10000,"MaxAdvancedIops":500000,"MaxAdvancedThroughputMBps":12000,"LocalTempDisks":4,"LocalTempDiskGB":1760},
+        {"VmSize":"Standard_E192ibds_v6","VCores":192,"MemoryGB":1832,"MaxDataDisks":64,"MaxIops":400000,"MaxThroughputMBps":14000,"MaxAdvancedIops":800000,"MaxAdvancedThroughputMBps":14000,"LocalTempDisks":6,"LocalTempDiskGB":1760}
+      ]
+    },
+    {
+      "Hardware":"Ebdsv5","Generation":5,"Preview":false,"LocalTempDiskType":"SSD","RemoteDiskController":"NVMe",
+      "ComputeProduct":"Virtual Machines Ebdsv5 Series","WindowsProduct":"Virtual Machines Ebdsv5 Series Windows","MeterFormat":"ArmSku","MeterNameFormat":"DisplayName",
+      "Rows":[
+        {"VmSize":"Standard_E2bds_v5","VCores":2,"MemoryGB":16,"MaxDataDisks":4,"MaxIops":8000,"MaxThroughputMBps":230,"MaxAdvancedIops":12000,"MaxAdvancedThroughputMBps":300,"LocalTempDisks":1,"LocalTempDiskGB":75},
+        {"VmSize":"Standard_E4bds_v5","VCores":4,"MemoryGB":32,"MaxDataDisks":8,"MaxIops":16000,"MaxThroughputMBps":460,"MaxAdvancedIops":21400,"MaxAdvancedThroughputMBps":600,"LocalTempDisks":1,"LocalTempDiskGB":150},
+        {"VmSize":"Standard_E8bds_v5","VCores":8,"MemoryGB":64,"MaxDataDisks":16,"MaxIops":33000,"MaxThroughputMBps":930,"MaxAdvancedIops":44200,"MaxAdvancedThroughputMBps":1200,"LocalTempDisks":1,"LocalTempDiskGB":300},
+        {"VmSize":"Standard_E16bds_v5","VCores":16,"MemoryGB":128,"MaxDataDisks":32,"MaxIops":66000,"MaxThroughputMBps":1800,"MaxAdvancedIops":88400,"MaxAdvancedThroughputMBps":2300,"LocalTempDisks":1,"LocalTempDiskGB":600},
+        {"VmSize":"Standard_E32bds_v5","VCores":32,"MemoryGB":256,"MaxDataDisks":32,"MaxIops":130000,"MaxThroughputMBps":3700,"MaxAdvancedIops":174200,"MaxAdvancedThroughputMBps":4800,"LocalTempDisks":1,"LocalTempDiskGB":1200},
+        {"VmSize":"Standard_E48bds_v5","VCores":48,"MemoryGB":384,"MaxDataDisks":32,"MaxIops":190000,"MaxThroughputMBps":5600,"MaxAdvancedIops":253300,"MaxAdvancedThroughputMBps":7300,"LocalTempDisks":1,"LocalTempDiskGB":1800},
+        {"VmSize":"Standard_E64bds_v5","VCores":64,"MemoryGB":512,"MaxDataDisks":32,"MaxIops":220000,"MaxThroughputMBps":6000,"MaxAdvancedIops":294800,"MaxAdvancedThroughputMBps":7800,"LocalTempDisks":1,"LocalTempDiskGB":2400},
+        {"VmSize":"Standard_E96bds_v5","VCores":96,"MemoryGB":672,"MaxDataDisks":32,"MaxIops":260000,"MaxThroughputMBps":7500,"MaxAdvancedIops":390000,"MaxAdvancedThroughputMBps":8500,"LocalTempDisks":1,"LocalTempDiskGB":3600},
+        {"VmSize":"Standard_E112ibds_v5","VCores":112,"MemoryGB":672,"MaxDataDisks":64,"MaxIops":260000,"MaxThroughputMBps":8000,"MaxAdvancedIops":400000,"MaxAdvancedThroughputMBps":10000,"LocalTempDisks":1,"LocalTempDiskGB":3800}
+      ]
+    }
+  ],
+  "Disks": [
+    {"Id":"P1-LRS","Tier":"P1","SizeGB":4,"Iops":120,"ThroughputMBps":25},
+    {"Id":"P2-LRS","Tier":"P2","SizeGB":8,"Iops":120,"ThroughputMBps":25},
+    {"Id":"P3-LRS","Tier":"P3","SizeGB":16,"Iops":120,"ThroughputMBps":25},
+    {"Id":"P4-LRS","Tier":"P4","SizeGB":32,"Iops":120,"ThroughputMBps":25},
+    {"Id":"P6-LRS","Tier":"P6","SizeGB":64,"Iops":240,"ThroughputMBps":50},
+    {"Id":"P10-LRS","Tier":"P10","SizeGB":128,"Iops":500,"ThroughputMBps":100},
+    {"Id":"P15-LRS","Tier":"P15","SizeGB":256,"Iops":1100,"ThroughputMBps":125},
+    {"Id":"P20-LRS","Tier":"P20","SizeGB":512,"Iops":2300,"ThroughputMBps":150},
+    {"Id":"P30-LRS","Tier":"P30","SizeGB":1024,"Iops":5000,"ThroughputMBps":200},
+    {"Id":"P40-LRS","Tier":"P40","SizeGB":2048,"Iops":7500,"ThroughputMBps":250},
+    {"Id":"P50-LRS","Tier":"P50","SizeGB":4096,"Iops":7500,"ThroughputMBps":250},
+    {"Id":"P60-LRS","Tier":"P60","SizeGB":8192,"Iops":16000,"ThroughputMBps":500},
+    {"Id":"P70-LRS","Tier":"P70","SizeGB":16384,"Iops":18000,"ThroughputMBps":750},
+    {"Id":"P80-LRS","Tier":"P80","SizeGB":32767,"Iops":20000,"ThroughputMBps":900}
+  ]
+}

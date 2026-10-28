@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "targets": ["SqlDatabase", "ManagedInstance", "SqlVm"],
+  "evaluationStates": ["Pass", "Finding", "NotApplicable", "NeedsReview", "Error"],
+  "evidenceStates": ["Collected", "Error", "Unavailable"],
+  "captureStates": ["Pending", "Running", "Interrupted", "FailedResumable", "Completed", "Skipped", "Unavailable"],
+  "resultRequired": ["SchemaVersion", "AssessmentId", "GeneratedAt", "Source", "Configuration", "Inventory", "Targets", "Findings", "RuleEvaluations", "Recommendations", "Prices", "Performance", "Diagnostics", "Provenance"],
+  "findingFields": ["Target", "RuleId", "Category", "PublishedCategory", "Scope", "Database", "Object", "Line", "Message", "Remediation", "SourceUrl"],
+  "evaluationFields": ["Target", "RuleId", "Database", "Status", "Category", "Message", "SourceUrl"],
+  "recommendationFields": ["RecommendationId", "CatalogId", "Target", "Database", "Status", "ServiceTier", "Hardware", "VCores", "MemoryGB", "DataGB", "LogGB", "TempdbGB", "VmSize", "SqlEdition", "SqlMajorVersion", "Reason", "Confidence", "Constraints", "PriceComponents", "DiskLayout"],
+  "quoteFields": ["RecommendationId", "Scenario", "Status", "TotalMonthly", "Currency", "Region", "HoursPerMonth", "Components", "Errors"],
+  "recommendationOptionalFields": ["ReservedStorageGB", "TempdbPlacement", "ProvisionedIops", "IncludedIops", "AdditionalIops", "AdditionalMemoryGB", "BaseVmSize", "BaseVCores", "VmGeneration", "VmPreview", "LocalTempDisks", "LocalTempDiskGB", "LocalTempGB", "LocalTempDiskType", "RemoteDiskController", "DiskType", "StorageAssessment"],
+  "configurableDiskFields": ["DiskId", "DiskType", "Role", "Count", "SizeGB", "Iops", "ThroughputMBps", "ProvisionedGB", "BilledSizeGB", "Caching", "Redundancy"],
+  "diskSuggestionQuoteFields": ["DiskType", "IsSuggested", "SuggestionReason", "StorageHoursPerMonth", "DiskBillingPolicy"],
+  "tempdbPlacements": ["LocalTemporary", "ManagedDisk"],
+  "priceComponentFields": ["Component", "MeterId", "Quantity", "Unit", "Rate", "MonthlyCost", "EffectiveStartDate", "RetrievedAt"],
+  "notes": [
+    "Missing mandatory resource or price evidence is never zero.",
+    "Result documents exclude full SQL definitions and job-step text.",
+    "A bundle is sensitive and contains definitions required for offline reevaluation."
+  ]
+}

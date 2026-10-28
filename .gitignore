@@ -1,0 +1,7 @@
+.dependencies/
+.impeccable/
+.ssa-pricing-cache/
+artifacts/
+TestResults.xml
+*.tmp
+assessment-output/
