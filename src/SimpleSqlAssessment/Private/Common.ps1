@@ -140,6 +140,7 @@ function New-SsaResult {
         GeneratedAt = [datetime]::UtcNow.ToString('o'); Source = $Bundle.Source
         Configuration = [pscustomobject]@{ Region = $Region; Currency = $Currency; HoursPerMonth = $HoursPerMonth }
         Inventory = $Bundle.Databases
+        ClientDependencies = Get-SsaClientDependencies $Bundle
         Targets = @(); Findings = @(); RuleEvaluations = @(); Recommendations = @(); Prices = @()
         Performance = [pscustomobject]@{ State = 'Unavailable'; RequestedSeconds = 604800; UsableSeconds = 0; WallSeconds = 0; Gaps = @(); Summary = @(); Series = @() }
         Diagnostics = @($Bundle.Diagnostics)

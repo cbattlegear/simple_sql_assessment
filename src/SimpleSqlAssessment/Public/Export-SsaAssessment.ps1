@@ -1,7 +1,7 @@
 function Export-SsaAssessment {
     <#
     .SYNOPSIS
-    Exports a normalized assessment as a standalone HTML snapshot, JSON, and seven CSV tables.
+    Exports a normalized assessment as a standalone HTML snapshot, JSON, and eight CSV tables.
     .DESCRIPTION
     OutputPath is a directory. All formats are written on each call, without network access.
     SQL definitions, job-step commands, credentials, and raw samples are excluded. Other
@@ -48,6 +48,10 @@ function Export-SsaAssessment {
         $path = Join-Path $csvDirectory 'disk-alternatives.csv'
         Write-SsaReportCsv -Path $path -Rows @(Get-SsaValue $result 'Prices' @() | Where-Object { Get-SsaValue $_ 'DiskType' }) -Columns @('RecommendationId','CatalogId','DiskType','Scenario','Status','TotalMonthly','Currency','IsSuggested','SuggestionReason','StorageHoursPerMonth','DiskBillingPolicy')
         $files['disk-alternatives'] = $path
+        $path = Join-Path $csvDirectory 'client-dependencies.csv'
+        $clients = Get-SsaValue -Object $result -Name ClientDependencies
+        Write-SsaReportCsv -Path $path -Rows @(Get-SsaValue $clients 'Clients' @()) -Columns @('Location','ClientAddress','HostName','ProgramName','ClientInterfaceName','LoginName','Databases','Transports','AuthenticationSchemes','EncryptionStates','FirstObservedAt','LastObservedAt','SamplesSeen','PeakSessions')
+        $files['client-dependencies'] = $path
         $path = Join-Path $csvDirectory 'performance-summary.csv'
         $performance = Get-SsaValue -Object $result -Name Performance
         Write-SsaReportCsv -Path $path -Rows @(Get-SsaValue -Object $performance -Name Summary -Default @()) -Columns @('Metric', 'Database', 'P95', 'Peak', 'Unit')

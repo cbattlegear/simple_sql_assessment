@@ -39,6 +39,8 @@ Describe 'Read-only source collection and version gates' {
         $expectedCalls = 1; if ($VersionMajor -lt 13) { $expectedCalls = 0 }
         Should -Invoke Invoke-SsaQuery -ModuleName SimpleSqlAssessment -Times $expectedCalls -Exactly -ParameterFilter { $Query -like '*sys.external_data_sources*' }
         @($bundle.Evidence | Where-Object { $_.Kind -eq 'ExternalDataSources' -and $_.Status -eq 'Collected' }).Count | Should -Be 1
+        $bundle.ClientSnapshot.Status | Should -Be Unavailable
+        (Get-Content -Raw (Join-Path $script:collection 'inventory.json') | ConvertFrom-Json).ClientSnapshot.Status | Should -Be Unavailable
     }
     It 'retains inaccessible catalogs as explicit evidence errors and diagnostics' {
         Mock Invoke-SsaQuery -ModuleName SimpleSqlAssessment -ParameterFilter { $Query -like '*sys.cryptographic_providers*' } { throw 'Fixture permission denied.' }
@@ -46,6 +48,16 @@ Describe 'Read-only source collection and version gates' {
         @($bundle.Evidence | Where-Object { $_.Kind -eq 'Providers' -and $_.Status -eq 'Error' }).Count | Should -Be 1
         @($bundle.Diagnostics | Where-Object Kind -EQ Providers).Count | Should -Be 1
         Test-Path (Join-Path $script:collection 'inventory.json') | Should -BeTrue
+    }
+    It 'persists a successful client snapshot independently of catalog evidence visibility' {
+        Mock Invoke-SsaQuery -ModuleName SimpleSqlAssessment -ParameterFilter { $Query -like '*AS CanViewClients;' } { [pscustomobject]@{ CanViewClients = 1 } }
+        Mock Invoke-SsaQuery -ModuleName SimpleSqlAssessment -ParameterFilter { $Query -like '*sys.dm_exec_sessions*' } {
+            [pscustomobject]@{ SessionId = 51; ClientAddress = '192.0.2.10'; HostName = 'APP01' }
+        }
+        $bundle = New-SsaCollection -SqlInstance 'fixture-endpoint' -CollectionPath $script:collection
+        $bundle.ClientSnapshot.Status | Should -Be Collected
+        $saved = Get-Content -Raw (Join-Path $script:collection 'inventory.json') | ConvertFrom-Json
+        $saved.ClientSnapshot.Rows[0].HostName | Should -Be APP01
     }
     It 'refuses nonempty collection directories without changing their contents' {
         $null = [IO.Directory]::CreateDirectory($script:collection)

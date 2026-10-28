@@ -28,6 +28,19 @@ Set-TestEvidence $bundle 'Definitions' $bundle.Definitions 'App'
 Set-TestEvidence $bundle 'LinkedServers' @([pscustomobject]@{Name='SyntheticRemote';Provider='MSOLEDBSQL'})
 $start = [datetime]::UtcNow.AddDays(-2)
 $bundle.CollectedAt = $start.ToString('o')
+$clientRows = @(
+    [pscustomobject]@{
+        SessionId=51;ClientAddress='192.0.2.10';LocalAddress='192.0.2.20';HostName='synthetic-app01'
+        ProgramName='Synthetic application';ClientInterfaceName='Synthetic driver';LoginName='synthetic-app-login'
+        DatabaseName='App';NetTransport='TCP';AuthScheme='KERBEROS';EncryptOption='TRUE'
+    },
+    [pscustomobject]@{
+        SessionId=52;ClientAddress='127.0.0.1';LocalAddress='127.0.0.1';HostName='synthetic-host'
+        ProgramName='Synthetic local maintenance';ClientInterfaceName='Synthetic driver';LoginName='synthetic-maintenance'
+        DatabaseName='master';NetTransport='TCP';AuthScheme='KERBEROS';EncryptOption='TRUE'
+    }
+)
+$bundle | Add-Member NoteProperty ClientSnapshot ([pscustomobject]@{Timestamp=$start.ToString('o');Status='Collected';Rows=$clientRows;Error=$null})
 $bundle.Diagnostics = @([pscustomobject]@{
     Code='SyntheticExample'
     Message='SYNTHETIC EXAMPLE ONLY. No SQL source was contacted. Capture is partial, contains an intentional gap, and is not a seven-day assessment. Any AHB scenario is an illustrative entitlement assumption.'
@@ -39,6 +52,14 @@ foreach ($index in 0..288) {
     if ($index -ge 120) { $second += 3600 }
     $raw = New-TestRawSample $second
     $raw.Timestamp = $start.AddSeconds($second).ToString('o')
+    $snapshotRows = @($clientRows[0])
+    if ($index % 12 -eq 0) { $snapshotRows += $clientRows[1] }
+    if ($index % 3 -eq 0) {
+        $extra = $clientRows[0].PSObject.Copy()
+        $extra.SessionId = 53
+        $snapshotRows += $extra
+    }
+    $raw | Add-Member NoteProperty ClientSnapshot ([pscustomobject]@{Timestamp=$raw.Timestamp;Status='Collected';Rows=$snapshotRows;Error=$null})
     $raw.MemoryGB = 6 + [Math]::Abs([Math]::Sin($index/18.0))*3
     $raw | Add-Member NoteProperty HostUsedMemoryGB (12+$raw.MemoryGB)
     $raw.Windows.UsedCores = 0.5+[Math]::Abs([Math]::Sin($index/13.0))*2

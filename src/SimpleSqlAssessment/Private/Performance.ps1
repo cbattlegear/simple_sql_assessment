@@ -109,6 +109,7 @@ function Get-SsaRawSample {
         Windows = $windows; MemoryGB = [Math]::Max($memory[0].MemoryKB / 1MB, $windows.WorkingSetGB)
         HostUsedMemoryGB = $(if ($null -ne $source.PhysicalMemoryGB) { [Math]::Max(0,$source.PhysicalMemoryGB-$windows.AvailableMemoryGB) } else { $null })
         Files = $files
+        ClientSnapshot = Get-SsaClientSnapshot $Connection $source.VersionMajor
     }
 }
 

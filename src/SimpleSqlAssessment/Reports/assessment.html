@@ -31,7 +31,7 @@
     This snapshot can contain sensitive identifiers. It is not automatically safe to share. Reload to view a regenerated export.
   </aside>
   <nav aria-label="Report sections">
-    <a href="#comparison">Comparison</a><a href="#inventory">Inventory</a>
+    <a href="#comparison">Comparison</a><a href="#inventory">Inventory</a><a href="#clients">Client dependencies</a>
     <a href="#findings">Findings</a><a href="#coverage">Rule coverage</a>
     <a href="#performance">Performance</a><a href="#recommendations">Recommendations</a>
     <a href="#pricing">Pricing</a><a href="#provenance">Assumptions</a>
@@ -45,6 +45,17 @@
     <section id="inventory" aria-labelledby="inventory-title">
       <h2 id="inventory-title">Source inventory</h2>
       <div id="source-summary"></div><div id="inventory-content"></div>
+    </section>
+    <section id="clients" aria-labelledby="clients-title">
+      <h2 id="clients-title">Observed client dependencies</h2>
+      <p>Inbound clients observed connecting to this SQL instance, not a complete application dependency map.
+        Short connections between snapshots and jobs outside the observation window can be missed.
+        Host/application names are client supplied; an IP may identify a proxy or NAT gateway.
+        Database contexts do not establish every database accessed. Client and login identifiers are sensitive.</p>
+      <div id="client-summary"></div>
+      <div id="client-filters" class="filters" role="group" aria-label="Client dependency filters"></div>
+      <p id="client-count" class="muted" role="status" aria-live="polite"></p>
+      <div id="client-table"></div><div id="client-details"></div>
     </section>
     <section id="findings" aria-labelledby="findings-title">
       <h2 id="findings-title">Findings and remediation</h2>

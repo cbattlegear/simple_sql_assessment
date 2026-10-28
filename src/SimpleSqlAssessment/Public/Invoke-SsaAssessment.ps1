@@ -84,6 +84,7 @@ function Invoke-SsaAssessment {
             $null = Start-SsaPerformanceCapture -CollectionPath $CollectionPath -Duration $Duration -SampleIntervalSeconds $SampleIntervalSeconds -Credential $Credential -TrustServerCertificate:$TrustServerCertificate
         } catch {
             $result.Performance.State = 'FailedResumable'
+            $result.ClientDependencies = Get-SsaClientDependencies $bundle $CollectionPath
             $result.Diagnostics += [pscustomobject]@{ Code = 'CaptureFailed'; Message = 'Performance collection failed; retain static results and use Resume-SsaPerformanceCapture after fixing SQL/Windows access.' }
             Update-SsaTargetSummary $result
             $null = Export-SsaAssessment -Assessment $result -OutputPath $OutputPath
@@ -92,8 +93,9 @@ function Invoke-SsaAssessment {
     }
     if (-not $SkipPerformance) {
         $performance = Get-SsaPerformanceAnalysis $CollectionPath $bundle $Percentile
+        $result.ClientDependencies = $performance.ClientDependencies
         $publicPerformance = [ordered]@{}
-        foreach ($property in $performance.PSObject.Properties) { if ($property.Name -ne 'Samples') { $publicPerformance[$property.Name] = $property.Value } }
+        foreach ($property in $performance.PSObject.Properties) { if ($property.Name -notin @('Samples','ClientDependencies')) { $publicPerformance[$property.Name] = $property.Value } }
         $result.Performance = [pscustomobject]$publicPerformance
         $sizing = @{ CollectionPath = $CollectionPath; Percentile = $Percentile; HeadroomPercent = $HeadroomPercent; StorageGrowthPercent = $StorageGrowthPercent; TargetSqlMajorVersion = $TargetSqlMajorVersion; Region = $Region; IncludePreviewVm = $IncludePreviewVm }
         if ($TargetSqlEdition) { $sizing.TargetSqlEdition = $TargetSqlEdition }

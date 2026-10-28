@@ -139,6 +139,7 @@ function New-SsaCollection {
         $bundle = [pscustomobject][ordered]@{
             SchemaVersion = '1.0'; CollectionId = [guid]::NewGuid().ToString(); CollectedAt = [datetime]::UtcNow.ToString('o')
             Source = $source; Databases = $databases; Evidence = $evidence.ToArray(); Definitions = $definitions.ToArray()
+            ClientSnapshot = Get-SsaClientSnapshot $connection $source.VersionMajor
             Diagnostics = @($evidence | Where-Object { $_.Status -ne 'Collected' } | ForEach-Object { [pscustomobject]@{ Code = 'EvidenceUnavailable'; Database = $_.Database; Kind = $_.Kind; Message = $_.Error } })
         }
         Write-SsaJson (Join-Path $root 'inventory.json') $bundle

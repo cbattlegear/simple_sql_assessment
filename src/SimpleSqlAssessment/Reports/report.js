@@ -222,6 +222,50 @@
   detail(byId("inventory-content"), "Dependencies", value(data, "Dependencies", value(inventory, "Dependencies")));
   detail(byId("inventory-content"), "Additional inventory evidence", !Array.isArray(inventory) ? inventory : null);
 
+  const clientEvidence = value(data, "ClientDependencies", {}) || {};
+  const clients = array(clientEvidence.Clients);
+  facts(byId("client-summary"), [
+    ["Snapshot status", value(clientEvidence, "Status", "NotCollected")],
+    ["Successful snapshots", value(clientEvidence, "SnapshotsObserved", 0)],
+    ["Unavailable / legacy snapshots", text(value(clientEvidence, "SnapshotsUnavailable", 0)) + " / " + text(value(clientEvidence, "SnapshotsNotCollected", 0))],
+    ["First / last successful snapshot (UTC)", text(clientEvidence.FirstSnapshotAt) + " / " + text(clientEvidence.LastSnapshotAt)],
+    ["Capture cadence (seconds)", clientEvidence.SampleIntervalSeconds]
+  ]);
+  if (!value(clientEvidence, "SnapshotsObserved", 0)) {
+    empty(byId("client-summary"), "No usable client snapshots. This does not establish that no external machines connect to SQL Server.");
+  }
+  const clientFilter = element("label", "Client location");
+  const clientLocation = element("select");
+  clientLocation.id = "client-filter-location";
+  clientFilter.htmlFor = clientLocation.id;
+  [["", "All locations"], ["Remote", "Remote"], ["Local", "Local"], ["Unknown", "Unknown"]].forEach(([key, title]) => {
+    const option = element("option", title); option.value = key; clientLocation.append(option);
+  });
+  clientFilter.append(clientLocation);
+  const clientSearchLabel = element("label", "Search clients");
+  const clientSearch = element("input");
+  clientSearch.id = "client-filter-text"; clientSearch.type = "search";
+  clientSearchLabel.htmlFor = clientSearch.id; clientSearchLabel.append(clientSearch);
+  byId("client-filters").append(clientFilter, clientSearchLabel);
+  function drawClients() {
+    const query = clientSearch.value.trim().toLocaleLowerCase();
+    const rows = clients.filter(row => (!clientLocation.value || row.Location === clientLocation.value) &&
+      (!query || JSON.stringify(row).toLocaleLowerCase().includes(query)));
+    byId("client-count").textContent = rows.length + " of " + clients.length + " observed client groups shown";
+    byId("client-table").replaceChildren();
+    table(byId("client-table"), rows, [
+      ...columns(["Location", "ClientAddress", "HostName", "ProgramName", "LoginName"]),
+      { key: "Databases", label: "Observed database contexts", render: row => element("span", array(row.Databases).join(", ") || "Not available") },
+      ...columns(["SamplesSeen", "PeakSessions", "FirstObservedAt", "LastObservedAt"])
+    ], "Observed inbound clients (sightings, not login counts; UTC times)", true);
+  }
+  clientLocation.addEventListener("change", drawClients);
+  clientSearch.addEventListener("input", drawClients);
+  drawClients();
+  detail(byId("client-details"), "Driver, transport, authentication, and encryption evidence", clients);
+  detail(byId("client-details"), "Client collection diagnostics", clientEvidence.Diagnostics);
+  detail(byId("client-details"), "Observation method and limitations", clientEvidence.Notes);
+
   const evaluationIndex = new Map();
   const evaluationKey = row => JSON.stringify([row.Target, row.RuleId, row.Database || ""]);
   evaluations.forEach(row => {
@@ -415,6 +459,7 @@
   const print = () => {
     findingControls.reset.click();
     coverageControls.reset.click();
+    clientLocation.value = ""; clientSearch.value = ""; drawClients();
     document.querySelectorAll("details").forEach(node => { node.open = true; });
   };
   window.addEventListener("beforeprint", print);

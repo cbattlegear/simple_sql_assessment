@@ -13,6 +13,8 @@ for application regression testing or a migration readiness sign-off.
   Benefit estimates using the unauthenticated Azure Retail Prices API.
 - Writes a standalone **offline HTML report**, JSON, CSV, and PowerShell objects.
   Compatibility and sizing can be rerun without reconnecting to SQL Server.
+- Reports **observed inbound clients**: SQL-observed IPs, reported host/application
+  names, logins, database contexts, and sampled connection concurrency.
 
 **Pilot boundary:** no real SQL Server source was available during initial
 implementation. Live SQL collection and sustained seven-day operation still need
@@ -132,7 +134,9 @@ Server01\
     rule-coverage.csv
     recommendations.csv
     cost-components.csv
+    disk-alternatives.csv
     performance-summary.csv
+    client-dependencies.csv
   collection\
     inventory.json
     manifest.json
@@ -144,6 +148,36 @@ Server01\
 `$result` is the shared PowerShell result model, including output paths in
 `$result.OutputFiles`. `Export-SsaAssessment -Assessment $result -OutputPath ...`
 regenerates HTML/JSON/CSV without contacting SQL or Azure.
+
+### Observed client dependencies
+
+The report's **Observed client dependencies** section inventories machines and
+applications seen connecting into SQL Server. Static collection takes one
+read-only session/connection snapshot; performance capture repeats it at the
+configured cadence (30 seconds by default). No software is installed on clients,
+no DNS lookups are performed, and no application SQL text is collected.
+
+`$result.ClientDependencies` contains coverage status/counts and grouped client
+rows: IP, client-reported hostname, application, driver, original login,
+local/remote/unknown location, authentication/encryption evidence, observed
+current databases, first/last observed UTC times, sightings, and peak sampled
+concurrent sessions. The same rows appear in `csv\client-dependencies.csv`.
+Local and unidentified clients are retained and can be filtered in the HTML.
+Static-only assessments do not require Windows counters.
+
+**This is sampled evidence, not a complete connection history or application
+dependency map.** Brief connections, infrequent jobs, and collection outages can
+hide clients. Host/application names are supplied by the client, and an IP can
+identify a proxy/NAT gateway. Current database contexts do not establish every
+database accessed. Repeated sightings are not new logins; pooled sleeping
+sessions are included, and sampled concurrency is not the true peak.
+
+Missing permissions/query failures show explicit client coverage gaps without
+blocking sizing. Old bundles remain readable but show `NotCollected` rather
+than an invented empty inventory. To gather this evidence for an old assessment,
+start a new collection or resume an incomplete capture with the updated module.
+Previously saved observations cannot reconstruct past clients. See the
+[permissions and collection details](docs/operations.md).
 
 **Treat both bundles and reports as sensitive.** Full definitions and job commands
 are excluded from presentation exports, but names, topology, findings, and prices

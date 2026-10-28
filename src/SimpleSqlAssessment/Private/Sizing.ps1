@@ -35,8 +35,11 @@ function Get-SsaPerformanceAnalysis {
     $state = [pscustomobject]@{ State = 'Unavailable'; RequestedSeconds = 604800; UsableSeconds = 0; StartedAt = $null }
     if (Test-Path -LiteralPath $capturePath) { $state = Read-SsaJson $capturePath }
     $fileInventory = @{}
+    $clientObservations = New-SsaClientObservationState
+    Add-SsaClientSnapshot $clientObservations (Get-SsaValue $Bundle 'ClientSnapshot')
     $previousRaw = $null
     $samples = @(Read-SsaCaptureRecords $CollectionPath $Bundle | ForEach-Object {
+        Add-SsaClientSnapshot $clientObservations (Get-SsaValue $_.Raw 'ClientSnapshot')
         foreach ($file in @(Get-SsaValue $_.Raw 'Files' @())) {
             $key = [string]$file.DatabaseId + '|' + $file.FileId
             if (-not $fileInventory.ContainsKey($key)) {
@@ -90,6 +93,7 @@ function Get-SsaPerformanceAnalysis {
         Gaps = $gaps.ToArray(); Summary = $summary.ToArray(); Series = $series.ToArray()
         Samples = $samples; Percentile = $Percentile; FileInventory = @($fileInventory.Values)
         StorageAssessment = Get-SsaStorageAssessment $samples $Percentile
+        ClientDependencies = ConvertTo-SsaClientDependencies $clientObservations (Get-SsaValue $state 'SampleIntervalSeconds')
         Notes = @('Ten-minute metric maxima are independent envelope points, not a simultaneous workload trace.', 'Per-database CPU/memory use the whole observed SQL instance as a conservative upper bound; not measured database attribution.')
     }
 }

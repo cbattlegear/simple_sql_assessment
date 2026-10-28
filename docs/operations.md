@@ -18,6 +18,7 @@ does not establish absence of a feature.
 | Server principal inventory | Visibility of all Windows logins/groups; the collector conservatively recognizes `ALTER ANY LOGIN` or sysadmin visibility |
 | Database principals | Complete database metadata visibility |
 | SQL performance observations | Generally `VIEW SERVER STATE` through SQL 2019; SQL 2022+ uses `VIEW SERVER PERFORMANCE STATE` for relevant DMVs |
+| Inbound client inventory | `VIEW SERVER STATE` through SQL 2019; `VIEW SERVER PERFORMANCE STATE` on SQL 2022+, checked explicitly before collecting all user sessions |
 | SQL Agent jobs | Read access to required msdb tables and complete job visibility; recognized roles include `SQLAgentReaderRole`, `SQLAgentOperatorRole`, or msdb `db_owner` |
 | Mail/audits/providers/credentials/triggers | Read access and complete metadata visibility for the relevant feature |
 | Windows observations | Performance-counter access on the SQL host and read access to localized Perflib registry names |
@@ -32,6 +33,41 @@ Some evidence queries can succeed while hiding rows. The collection records
 when visibility is incomplete. Offline/inaccessible databases remain unassessed.
 System databases and database snapshots are not collected as migration-unit
 databases; instance job/trigger metadata and system-file performance remain relevant.
+
+## Inbound client observations
+
+Static collection saves a `ClientSnapshot` in `inventory.json`. Each successful
+performance observation saves another in the checksummed segment's `Raw` model.
+Snapshots query `sys.dm_exec_sessions` and `sys.dm_exec_connections` with a
+five-second command timeout for each query, including the permission check.
+The query excludes internal sessions and its own session, retains sleeping and
+pooled user sessions, and joins only primary physical connections to avoid MARS
+duplication. It does not read SQL text, install an event session, query client
+machines, or change SQL configuration.
+
+Client inventory is optional evidence: denied visibility and failed queries
+produce a warning and an explicit snapshot status, not a failed performance
+interval. Offline analysis aggregates saved snapshots without reconnecting.
+Restart/baseline snapshots remain valid point observations even when no
+performance rate can be calculated. Resume reads committed snapshots once and
+does not persist a separate, double-counted summary.
+
+`ClientDependencies.Status` is `Collected` when all included snapshots succeeded,
+`Partial` when some evidence is missing, `Unavailable` when only failed/denied
+snapshots exist, or `NotCollected` for older bundles with no client evidence.
+None of these states asserts complete application discovery. Counts of
+successful, unavailable, and legacy snapshots and grouped query diagnostics
+appear in HTML/JSON; the CSV contains client rows and is header-only when none
+are available. Consult coverage before interpreting an empty CSV.
+`-SkipPerformance` reports the static snapshot only.
+
+First/last sightings are collector UTC observation times, not login/logout
+times. No duration or traffic is attributed between observations. IP-based
+local/remote classification is best effort (shared memory, loopback and an exact
+server-address match are local); other unidentifiable connections remain
+`Unknown`. Alternate local interfaces and network intermediaries can obscure
+the actual machine. Host/application names and original login names are
+sensitive; these reports must not be added to the public repository.
 
 ## Windows counters
 
@@ -90,7 +126,8 @@ sequence gaps.
 
 Use local storage with free space appropriate to database/file count. Seven days
 at 30 seconds produces roughly 20,161 observations before additional baselines
-or gaps. Segment size scales with source file count. Offline analysis loads rate
+or gaps. Segment size scales with source file count and concurrent client sessions.
+Offline analysis loads rate
 observations in memory; large instances and extended captures need memory and
 disk-capacity planning. No automatic retention or source-data deletion is performed.
 

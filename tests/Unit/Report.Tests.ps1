@@ -83,7 +83,7 @@ Describe 'Export-SsaAssessment' {
         $paths.PSObject.Properties.Name | Should -Not -Contain 'AssessmentId'
         Test-Path -LiteralPath $paths.HtmlPath | Should -BeTrue
         Test-Path -LiteralPath $paths.JsonPath | Should -BeTrue
-        @($paths.CsvFiles.PSObject.Properties).Count | Should -Be 7
+        @($paths.CsvFiles.PSObject.Properties).Count | Should -Be 8
         foreach ($property in $paths.CsvFiles.PSObject.Properties) {
             Test-Path -LiteralPath $property.Value | Should -BeTrue
             [IO.File]::ReadAllText($property.Value).Length | Should -BeGreaterThan 0
@@ -137,6 +137,40 @@ Describe 'Export-SsaAssessment' {
         $embedded.Recommendations[0].TempdbPlacement | Should -Be LocalTemporary
         $csv.TempdbPlacement | Should -Be LocalTemporary
         @($csv.DiskLayout | ConvertFrom-Json)[0].Role | Should -Be Os
+    }
+
+    It 'preserves client evidence and coverage across HTML, JSON, and formula-safe CSV' {
+        $assessment = New-ReportFixture
+        $attack = '</script><img src=x onerror=alert(1)>'
+        $assessment | Add-Member NoteProperty ClientDependencies ([pscustomobject]@{
+            Status = 'Partial'; SnapshotsObserved = 2; SnapshotsUnavailable = 1; SnapshotsNotCollected = 0
+            FirstSnapshotAt = '2026-01-01T00:00:00Z'; LastSnapshotAt = '2026-01-01T00:00:30Z'; SampleIntervalSeconds = 30
+            Clients = @([pscustomobject]@{
+                Location = 'Remote'; ClientAddress = '192.0.2.10'; HostName = '=malicious-client'; ProgramName = $attack
+                ClientInterfaceName = 'Example driver'; LoginName = 'example-login'; Databases = @('App','OtherDb')
+                Transports = @('TCP'); AuthenticationSchemes = @('KERBEROS'); EncryptionStates = @('TRUE')
+                FirstObservedAt = '2026-01-01T00:00:00Z'; LastObservedAt = '2026-01-01T00:00:30Z'; SamplesSeen = 2; PeakSessions = 3
+            }); Diagnostics = @([pscustomobject]@{ Message = 'Fixture denied.'; SnapshotCount = 1 }); Notes = @('Observed only.')
+        })
+        $paths = Export-SsaAssessment $assessment -OutputPath (Join-Path $script:reportTestRoot 'clients')
+        $json = Get-Content -Raw $paths.JsonPath | ConvertFrom-Json
+        $embedded = Read-EmbeddedAssessment $paths.HtmlPath
+        ($embedded.ClientDependencies | ConvertTo-Json -Depth 10) | Should -Be ($json.ClientDependencies | ConvertTo-Json -Depth 10)
+        $embedded.ClientDependencies.Status | Should -Be Partial
+        $csv = @(Import-Csv $paths.CsvFiles.'client-dependencies')
+        $csv.Count | Should -Be 1
+        $csv[0].HostName | Should -Be "'=malicious-client"
+        $csv[0].ProgramName | Should -Be $attack
+        $csvDatabases = $csv[0].Databases | ConvertFrom-Json
+        $csvDatabases.Count | Should -Be 2
+        $csvDatabases[0] | Should -Be App
+        $csvDatabases[1] | Should -Be OtherDb
+        $csv[0].SamplesSeen | Should -Be '2'
+        $csv[0].PeakSessions | Should -Be '3'
+        $html = Get-Content -Raw $paths.HtmlPath
+        $html | Should -Match 'id="clients"'
+        $html | Should -Match 'client-filter-location'
+        $html | Should -Not -Match '<img src=x'
     }
 
     It 'retains configured MI IOPS, included resources, extra memory, and reserved storage across all exports' {

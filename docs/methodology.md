@@ -59,6 +59,37 @@ and migration prerequisites. It does not apply PaaS restrictions to VMs or
 claim historical Upgrade Advisor parity. Upgrades, downgrade risks, restore
 paths, OS/image support, and application behavior need operator validation.
 
+## Observed inbound client dependencies
+
+This report is separate from persisted SQL object/linked-server references and
+does not affect compatibility, capacity percentiles, or SKU selection. It uses
+[session metadata](https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-objects/sys-dm-exec-sessions-transact-sql)
+and [connection metadata](https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-objects/sys-dm-exec-connections-transact-sql)
+to observe inbound user sessions, including idle pooled sessions. SQL's original
+login identifies the connection identity, not a potentially impersonated
+execution context.
+
+Rows group IP/reported hostname, application, driver, original login, and
+best-effort local/remote/unknown classification. Each group records distinct
+observed current database contexts, transports, authentication schemes, and
+encryption states. `SamplesSeen` increments once per group in a successful
+snapshot; `PeakSessions` is the maximum distinct session count for that group
+in any one snapshot. Neither is a total login count. MARS child connections
+are excluded by the query and duplicate session IDs do not inflate concurrency.
+Case-insensitive host/IP identity preserves stable groupings; applications and
+logins are not collapsed across case-sensitive values.
+
+Successful static and capture snapshots contribute, including rate baselines.
+First/last observations are UTC collector timestamps. Failed/missing snapshots
+do not contribute clients or fabricated sightings, and no observations are
+interpolated over gaps. Successful empty snapshots are distinguished from
+missing/denied evidence. Legacy captures cannot recover client history.
+Default sampling is the existing 30-second cadence; snapshots alone cannot
+guarantee discovery of short-lived clients, weekly/monthly tasks, true peak
+connections, all databases accessed, or machines hidden behind gateways.
+Client-reported names are unverified, and a current database is only session
+context, not proof of a database dependency.
+
 ## Performance and demand
 
 Usable observations pair Windows host/process CPU and memory with SQL committed
