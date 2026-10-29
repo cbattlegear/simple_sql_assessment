@@ -74,6 +74,51 @@ Describe 'Sizing and workflow integration' {
         Should -Invoke Get-SsaPriceEstimate -ModuleName SimpleSqlAssessment -Times 0 -Exactly
         Should -Invoke New-SsaSqlConnection -ModuleName SimpleSqlAssessment -Times 0 -Exactly
     }
+    It 'resolves dot output and relative collection paths against the PowerShell location' {
+        $working = Join-Path $TestDrive 'relative workflow (1)'
+        $bundlePath = Join-Path $working 'source-bundle'
+        $null = Save-ObservedBundle $bundlePath
+        Push-Location -LiteralPath $working
+        try {
+            $result = Invoke-SsaAssessment -CollectionPath '.\source-bundle' -OutputPath '.' -Region eastus -Offline -TargetSqlMajorVersion 16
+            $result.OutputFiles.OutputPath | Should -Be $working
+            Test-Path -LiteralPath (Join-Path $working 'assessment.html') | Should -BeTrue
+            $result.Performance.UsableSeconds | Should -Be 60
+            $recommendations = @(Get-SsaSkuRecommendation -CollectionPath '.\source-bundle' -TargetSqlMajorVersion 16)
+            @($recommendations | Where-Object Status -NE Unavailable).Count | Should -Be 3
+        } finally { Pop-Location }
+    }
+    It 'stops at a collection failure without rules, reports, or missing-property cascades' {
+        Mock New-SsaSqlConnection -ModuleName SimpleSqlAssessment {
+            $command = [pscustomobject]@{ CommandText=''; CommandTimeout=0 }
+            $command | Add-Member ScriptMethod Dispose {}
+            $command | Add-Member ScriptMethod ExecuteReader { throw 'Reader must not run after failed login.' }
+            $connection = [pscustomobject]@{ State='Closed'; Command=$command }
+            $connection | Add-Member ScriptMethod CreateCommand { $this.Command }
+            $connection | Add-Member ScriptMethod Open { throw 'Fixture certificate-chain failure.' }
+            $connection | Add-Member ScriptMethod Dispose {}
+            return $connection
+        }
+        Mock Invoke-SsaRules -ModuleName SimpleSqlAssessment { throw 'Rules must not run after failed collection.' }
+        Mock Export-SsaAssessment -ModuleName SimpleSqlAssessment { throw 'Reports must not run after failed collection.' }
+        $original = $ErrorActionPreference
+        $failure = $null
+        try {
+            $ErrorActionPreference = 'Continue'
+            try { $null = Invoke-SsaAssessment -SqlInstance fixture -OutputPath (Join-Path $TestDrive 'failed-live') -Region eastus -SkipPerformance }
+            catch { $failure = $_ }
+        } finally { $ErrorActionPreference = $original }
+        $failure | Should -Not -BeNullOrEmpty
+        $failure.ToString() | Should -Match 'certificate-chain failure'
+        Should -Invoke Invoke-SsaRules -ModuleName SimpleSqlAssessment -Times 0 -Exactly
+        Should -Invoke Export-SsaAssessment -ModuleName SimpleSqlAssessment -Times 0 -Exactly
+    }
+    It 'forwards certificate trust explicitly to live collection without disabling encryption by default' {
+        $bundle = New-TestBundle
+        Mock New-SsaCollection -ModuleName SimpleSqlAssessment { $bundle }
+        $null = Invoke-SsaAssessment -SqlInstance fixture -OutputPath (Join-Path $TestDrive 'trusted-live') -Region eastus -SkipPerformance -TrustServerCertificate
+        Should -Invoke New-SsaCollection -ModuleName SimpleSqlAssessment -Times 1 -Exactly -ParameterFilter { $TrustServerCertificate }
+    }
     It 'passes the assessment region into MI hardware and storage eligibility checks' {
         $null = Save-ObservedBundle $script:collection
         $result = Invoke-SsaAssessment -CollectionPath $script:collection -OutputPath (Join-Path $TestDrive 'region') -Region westus3 -Offline -TargetSqlMajorVersion 16

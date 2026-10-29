@@ -190,7 +190,7 @@ function Read-SsaCaptureRecords {
 
 function Invoke-SsaCapture {
     param([string]$CollectionPath, [timespan]$Duration = ([timespan]::FromDays(7)), [double]$SampleIntervalSeconds = 30, [pscredential]$Credential, [switch]$TrustServerCertificate, [switch]$Resume)
-    $root = [IO.Path]::GetFullPath($CollectionPath)
+    $root = Resolve-SsaFileSystemPath $CollectionPath
     $bundle = Read-SsaBundle $root
     if ($Duration.TotalSeconds -le 0 -or $SampleIntervalSeconds -lt 1) { throw 'Capture duration must be positive and sample interval must be at least one second.' }
     $capturePath = Join-Path $root 'capture.json'

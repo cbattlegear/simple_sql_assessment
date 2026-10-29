@@ -140,10 +140,24 @@ Connections encrypt traffic and validate certificates by default. Only use
 validation. Credentials are not persisted; SQL passwords use `SqlCredential`
 and `SecureString`, not connection-string password text.
 
-New collection directories must be empty. Their ACL is restricted to the
-collecting Windows identity; existing directory permissions are not rewritten.
+Relative output and collection paths resolve against the current PowerShell
+filesystem location (`Get-Location`), not the process working directory.
+
+Collection directories must be new or empty. Their protected, inheritable DACL
+grants access only to the collecting Windows identity. Setting this DACL does
+not modify ownership or audit settings and does not require `SeSecurityPrivilege`
+or elevation. If directory protection fails, collection stops before connecting
+to SQL or writing evidence. Nonempty directories and their permissions are never
+rewritten.
 When moving a bundle to another operator, arrange approved secure transfer and
 destination ACLs yourself.
+
+An initial SQL login or source-identity failure stops the assessment rather than
+producing a report from missing evidence. If a lab server uses an untrusted
+certificate, explicitly pass `-TrustServerCertificate` only after accepting the
+loss of certificate validation; traffic remains encrypted. This switch does not
+affect local filesystem permissions. Use a fresh output directory for a new
+assessment once a collection already exists.
 
 Definitions and job text can contain embedded credentials. The local evidence
 bundle is **not redacted**. Presentation exports omit those texts and escape

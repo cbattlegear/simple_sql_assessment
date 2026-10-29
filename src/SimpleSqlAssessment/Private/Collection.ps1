@@ -24,6 +24,7 @@ function Add-SsaEvidence {
 }
 
 function Get-SsaSource {
+    [CmdletBinding()]
     param($Connection)
     $queries = Read-SsaJson (Join-Path $script:SsaModuleRoot 'Queries\queries.json')
     $sourceRows = @(Invoke-SsaQuery $Connection $queries.Source)
@@ -49,6 +50,18 @@ function Get-SsaServerVisibility {
     return $rows[0]
 }
 
+function Set-SsaCollectionDirectoryAccess {
+    param([IO.DirectoryInfo]$Directory)
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
+    $acl = New-Object Security.AccessControl.DirectorySecurity
+    $acl.SetAccessRuleProtection($true, $false)
+    $rule = New-Object Security.AccessControl.FileSystemAccessRule($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+    $acl.AddAccessRule($rule)
+    # Persist only the modified DACL, not owner/group or privileged audit settings.
+    if ($PSVersionTable.PSEdition -eq 'Core') { [IO.FileSystemAclExtensions]::SetAccessControl($Directory, $acl) }
+    else { $Directory.SetAccessControl($acl) }
+}
+
 function New-SsaCollection {
     [CmdletBinding()]
     param(
@@ -57,25 +70,20 @@ function New-SsaCollection {
         [pscredential]$Credential,
         [switch]$TrustServerCertificate
     )
-    $root = [IO.Path]::GetFullPath($CollectionPath)
+    $ErrorActionPreference = 'Stop'
+    $root = Resolve-SsaFileSystemPath $CollectionPath
     if (Test-Path -LiteralPath (Join-Path $root 'inventory.json')) { throw 'A collection already exists here. Choose a new path to preserve the original evidence.' }
     if ((Test-Path -LiteralPath $root) -and @(Get-ChildItem -LiteralPath $root -Force).Count) { throw 'The collection directory must be new or empty; existing files and their permissions will not be changed.' }
-    [void][IO.Directory]::CreateDirectory($root)
     if ($env:OS -ne 'Windows_NT') { throw 'The first release requires Windows.' }
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
-    $acl = New-Object Security.AccessControl.DirectorySecurity
-    $acl.SetOwner($identity)
-    $acl.SetAccessRuleProtection($true, $false)
-    $rule = New-Object Security.AccessControl.FileSystemAccessRule($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
-    $acl.AddAccessRule($rule)
-    Set-Acl -LiteralPath $root -AclObject $acl -ErrorAction Stop
+    $directory = [IO.Directory]::CreateDirectory($root)
+    Set-SsaCollectionDirectoryAccess $directory
     Write-Warning 'The local collection contains sensitive definitions and job text. Do not share the evidence bundle without reviewing it.'
     $queries = Read-SsaJson (Join-Path $script:SsaModuleRoot 'Queries\queries.json')
     $connection = New-SsaSqlConnection $SqlInstance 'master' $Credential -TrustServerCertificate:$TrustServerCertificate
     $evidence = New-Object 'System.Collections.Generic.List[object]'
     $definitions = New-Object 'System.Collections.Generic.List[object]'
     try {
-        $source = Get-SsaSource $connection
+        $source = Get-SsaSource $connection -ErrorAction Stop
         $source | Add-Member NoteProperty ConnectionEndpoint $SqlInstance
         $visibility = Get-SsaServerVisibility $connection
         $databases = @(Invoke-SsaQuery $connection $queries.Databases)

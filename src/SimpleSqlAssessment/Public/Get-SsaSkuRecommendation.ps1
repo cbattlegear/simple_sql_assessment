@@ -10,6 +10,7 @@ function Get-SsaSkuRecommendation {
         [ValidateSet('Standard','Enterprise')][string]$TargetSqlEdition,
         [switch]$IncludePreviewVm
     )
+    $CollectionPath = Resolve-SsaFileSystemPath $CollectionPath
     $bundle = Read-SsaBundle $CollectionPath
     $performance = Get-SsaPerformanceAnalysis $CollectionPath $bundle $Percentile
     $samples = @($performance.Samples)

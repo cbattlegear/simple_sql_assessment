@@ -20,7 +20,7 @@ function Export-SsaAssessment {
         [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$OutputPath
     )
     process {
-        $directory = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
+        $directory = Resolve-SsaFileSystemPath $OutputPath
         $csvDirectory = Join-Path $directory 'csv'
         $result = ConvertTo-SsaReportValue -Value $Assessment
         if ($null -eq $result -or $result -isnot [pscustomobject]) { throw 'Assessment must be a structured result object.' }

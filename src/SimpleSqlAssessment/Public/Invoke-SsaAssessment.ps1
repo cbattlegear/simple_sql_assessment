@@ -57,12 +57,16 @@ function Invoke-SsaAssessment {
         [switch]$SqlHybridBenefit, [switch]$WindowsHybridBenefit,
         [switch]$AllowStaleCache
     )
+    $ErrorActionPreference = 'Stop'
     if ($Offline -and $PSCmdlet.ParameterSetName -eq 'Live') { throw '-Offline requires a local -CollectionPath, not a live SQL instance.' }
-    $OutputPath = [IO.Path]::GetFullPath($OutputPath)
+    $OutputPath = Resolve-SsaFileSystemPath $OutputPath
     if ($PSCmdlet.ParameterSetName -eq 'Live') {
         $CollectionPath = Join-Path $OutputPath 'collection'
-        $bundle = New-SsaCollection -SqlInstance $SqlInstance -CollectionPath $CollectionPath -Credential $Credential -TrustServerCertificate:$TrustServerCertificate
-    } else { $bundle = Read-SsaBundle $CollectionPath }
+        $bundle = New-SsaCollection -SqlInstance $SqlInstance -CollectionPath $CollectionPath -Credential $Credential -TrustServerCertificate:$TrustServerCertificate -ErrorAction Stop
+    } else {
+        $CollectionPath = Resolve-SsaFileSystemPath $CollectionPath
+        $bundle = Read-SsaBundle $CollectionPath
+    }
     $result = New-SsaResult $bundle $Region $Currency $HoursPerMonth
     $result.Configuration | Add-Member NoteProperty Percentile $Percentile
     $result.Configuration | Add-Member NoteProperty HeadroomPercent $HeadroomPercent

@@ -22,6 +22,43 @@ Describe 'Module and persistence contracts' {
             $connection.ConnectionString | Should -Not -Match 'Password='
         } finally { $connection.Dispose() }
     }
+    It 'keeps encryption enabled when certificate trust is explicitly requested' {
+        $connection = & $script:module { New-SsaSqlConnection -SqlInstance 'fixture.invalid' -TrustServerCertificate }
+        try {
+            $connection.ConnectionString | Should -Match 'Encrypt=True|Encrypt=Mandatory'
+            $connection.ConnectionString | Should -Match 'Trust Server Certificate=True|TrustServerCertificate=True'
+        } finally { $connection.Dispose() }
+    }
+    It 'preserves a connection failure without executing a reader under Continue preference' {
+        $command = [pscustomobject]@{ CommandText=''; CommandTimeout=0; Executed=$false; Disposed=$false }
+        $command | Add-Member ScriptMethod ExecuteReader { $this.Executed = $true; throw 'Reader must not run.' }
+        $command | Add-Member ScriptMethod Dispose { $this.Disposed = $true }
+        $connection = [pscustomobject]@{ State='Closed'; Command=$command }
+        $connection | Add-Member ScriptMethod CreateCommand { $this.Command }
+        $connection | Add-Member ScriptMethod Open { throw 'Fixture certificate-chain failure.' }
+        $failure = $null
+        try { & $script:module { param($c) $ErrorActionPreference='Continue'; Invoke-SsaQuery $c 'SELECT 1;' } $connection }
+        catch { $failure = $_ }
+        $failure | Should -Not -BeNullOrEmpty
+        $failure.ToString() | Should -Match 'certificate-chain failure'
+        $command.Executed | Should -BeFalse
+        $command.Disposed | Should -BeTrue
+    }
+    It 'resolves filesystem PSDrives and literal wildcard characters without changing process location' {
+        $parent = Join-Path $TestDrive 'literal [name] (1)'
+        $null = [IO.Directory]::CreateDirectory($parent)
+        $processDirectory = [Environment]::CurrentDirectory
+        $drive = 'SsaTest' + [guid]::NewGuid().ToString('N')
+        $null = New-PSDrive -Name $drive -PSProvider FileSystem -Root $parent -Scope Global
+        try {
+            $resolved = & $script:module { param($path) Resolve-SsaFileSystemPath $path } ($drive + ':\new-folder')
+            $resolved | Should -Be (Join-Path $parent 'new-folder')
+            [Environment]::CurrentDirectory | Should -Be $processDirectory
+        } finally { Remove-PSDrive -Name $drive -Scope Global }
+    }
+    It 'rejects non-filesystem output paths' {
+        { & $script:module { Resolve-SsaFileSystemPath 'Registry::HKEY_CURRENT_USER\Software' } } | Should -Throw '*FileSystem provider*'
+    }
     It 'returns SQL reader rows without nesting an extra array' {
         $table = New-Object Data.DataTable
         [void]$table.Columns.Add('Name',[string])

@@ -149,6 +149,17 @@ Describe 'Durable capture' {
         $resumed.LastSequence | Should -Be 2
         @(Get-ChildItem (Join-Path $script:collection 'performance') -Filter 'sample-*.json').Count | Should -Be 2
     }
+    It 'starts and resumes relative collection paths in the PowerShell working directory' {
+        Push-Location -LiteralPath (Split-Path $script:collection -Parent)
+        try {
+            $relative = '.\' + (Split-Path $script:collection -Leaf)
+            $state = Start-SsaPerformanceCapture -CollectionPath $relative -Duration ([timespan]::FromSeconds(1)) -SampleIntervalSeconds 1
+            $state.State | Should -Be Completed
+            $resumed = Resume-SsaPerformanceCapture -CollectionPath $relative
+            $resumed.LastSequence | Should -Be 2
+            Test-Path -LiteralPath (Join-Path $script:collection 'capture.json') | Should -BeTrue
+        } finally { Pop-Location }
+    }
     It 'detects a corrupted committed segment rather than discarding it' {
         $null = Start-SsaPerformanceCapture -CollectionPath $script:collection -Duration ([timespan]::FromSeconds(1)) -SampleIntervalSeconds 1
         $file = Join-Path $script:collection 'performance\sample-0000000001.json'

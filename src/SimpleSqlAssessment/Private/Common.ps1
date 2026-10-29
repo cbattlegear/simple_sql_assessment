@@ -7,6 +7,15 @@ function Get-SsaValue {
     return $Default
 }
 
+function Resolve-SsaFileSystemPath {
+    param([Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Path)
+    $ErrorActionPreference = 'Stop'
+    $provider = $null; $drive = $null
+    $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path, [ref]$provider, [ref]$drive)
+    if ($provider.Name -ne 'FileSystem') { throw 'Assessment paths must use the FileSystem provider.' }
+    return $resolved
+}
+
 function Write-SsaJson {
     param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)]$Value)
     $fullPath = [IO.Path]::GetFullPath($Path)
@@ -30,7 +39,7 @@ function Read-SsaJson {
 
 function Read-SsaBundle {
     param([Parameter(Mandatory)][string]$CollectionPath)
-    $path = [IO.Path]::GetFullPath($CollectionPath)
+    $path = Resolve-SsaFileSystemPath $CollectionPath
     if ([IO.Directory]::Exists($path)) { $path = Join-Path $path 'inventory.json' }
     $bundle = Read-SsaJson $path
     foreach ($name in @('SchemaVersion', 'CollectionId', 'CollectedAt', 'Source', 'Databases', 'Evidence', 'Definitions', 'Diagnostics')) {
@@ -108,6 +117,7 @@ function New-SsaSqlConnection {
 
 function Invoke-SsaQuery {
     param($Connection, [string]$Query, [int]$TimeoutSeconds = 30)
+    $ErrorActionPreference = 'Stop'
     $command = $Connection.CreateCommand()
     $command.CommandText = $Query
     $command.CommandTimeout = $TimeoutSeconds
