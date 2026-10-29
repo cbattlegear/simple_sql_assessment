@@ -78,7 +78,9 @@ credential. Supplying `-Credential` does not grant remote Windows access.
 Remote use needs permitted performance-counter RPC access and readable remote
 registry metadata. The collector maps English counter IDs to the host's
 localized names and finds SQL's process instance by PID, including duplicate
-process names. It does not start Remote Registry, open firewalls, change group
+process names. Counter paths are matched case-insensitively, including disk
+totals, queues, and free space; lowercase paths returned by `Get-Counter` are
+valid. It does not start Remote Registry, open firewalls, change group
 membership, or elevate privileges. Run locally on the SQL host if remote
 read-only access cannot be provided.
 

@@ -4,6 +4,92 @@ BeforeAll {
     . (Join-Path (Split-Path $PSScriptRoot -Parent) 'TestHelpers.ps1')
     $script:module = Get-Module SimpleSqlAssessment
 }
+Describe 'Windows performance-counter path matching' {
+    BeforeEach {
+        & $script:module { $script:SsaCounterMaps = @{} }
+        $names = @{}
+        foreach ($name in @('Processor','% Processor Time','Memory','Available MBytes','Process','ID Process','Working Set - Private','LogicalDisk','Disk Reads/sec','Disk Writes/sec','Disk Read Bytes/sec','Disk Write Bytes/sec','Free Megabytes','Avg. Disk Queue Length')) {
+            $names[$name] = $name
+        }
+        $rows = @(
+            @{ Object='Processor'; Instance='_Total'; Counter='% Processor Time'; Value=25 },
+            @{ Object='Memory'; Instance=''; Counter='Available MBytes'; Value=7155 },
+            @{ Object='Process'; Instance='sqlservr'; Counter='ID Process'; Value=100 },
+            @{ Object='Process'; Instance='sqlservr'; Counter='% Processor Time'; Value=900 },
+            @{ Object='Process'; Instance='sqlservr'; Counter='Working Set - Private'; Value=8GB },
+            @{ Object='Process'; Instance='sqlservr#1'; Counter='ID Process'; Value=200 },
+            @{ Object='Process'; Instance='sqlservr#1'; Counter='% Processor Time'; Value=40 },
+            @{ Object='Process'; Instance='sqlservr#1'; Counter='Working Set - Private'; Value=2GB },
+            @{ Object='LogicalDisk'; Instance='_Total'; Counter='Disk Reads/sec'; Value=3 },
+            @{ Object='LogicalDisk'; Instance='_Total'; Counter='Disk Writes/sec'; Value=12 },
+            @{ Object='LogicalDisk'; Instance='_Total'; Counter='Disk Read Bytes/sec'; Value=1MB },
+            @{ Object='LogicalDisk'; Instance='_Total'; Counter='Disk Write Bytes/sec'; Value=2MB },
+            @{ Object='LogicalDisk'; Instance='_Total'; Counter='Avg. Disk Queue Length'; Value=99 },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Disk Reads/sec'; Value=3 },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Disk Writes/sec'; Value=12 },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Disk Read Bytes/sec'; Value=1MB },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Disk Write Bytes/sec'; Value=2MB },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Avg. Disk Queue Length'; Value=2.5 },
+            @{ Object='LogicalDisk'; Instance='C:'; Counter='Free Megabytes'; Value=10240 }
+        )
+        $counterSet = [pscustomobject]@{ CounterSamples = @($rows | ForEach-Object {
+            $instance = ''; if ($_.Instance) { $instance = '('+$_.Instance+')' }
+            [pscustomobject]@{
+                Path = '\\fixture\'+$_.Object+$instance+'\'+$_.Counter
+                InstanceName = $(if ($_.Instance -eq 'sqlservr#1') { 'sqlservr' } else { $_.Instance })
+                CookedValue = [double]$_.Value; Status = 0
+            }
+        }) }
+        Mock Get-SsaCounterMap -ModuleName SimpleSqlAssessment { $names }
+        Mock Get-Counter -ModuleName SimpleSqlAssessment { $counterSet }
+    }
+    It 'recognizes <Casing> paths and preserves host totals, queues, free space and SQL PID selection' -ForEach @(
+        @{ Casing='Original' }, @{ Casing='Lowercase' }, @{ Casing='Uppercase' }
+    ) {
+        foreach ($counter in $counterSet.CounterSamples) {
+            if ($Casing -eq 'Lowercase') { $counter.Path = $counter.Path.ToLowerInvariant() }
+            if ($Casing -eq 'Uppercase') { $counter.Path = $counter.Path.ToUpperInvariant() }
+        }
+        $sample = & $script:module { Get-SsaWindowsSample -ComputerName fixture -SqlProcessId 200 -LogicalProcessors 4 }
+        $sample.AvailableMemoryGB | Should -Be (7155.0/1024)
+        $sample.HostIops | Should -Be 15
+        $sample.HostThroughputMBps | Should -Be 3
+        $sample.CpuPercent | Should -Be 10
+        $sample.WorkingSetGB | Should -Be 2
+        $sample.DiskPressure.Count | Should -Be 1
+        $sample.DiskPressure[0].AvgQueueLength | Should -Be 2.5
+        $sample.Volumes.Count | Should -Be 1
+        $sample.Volumes[0].FreeGB | Should -Be 10
+    }
+    It 'matches lowercase localized paths against the localized name map' {
+        foreach ($counter in $counterSet.CounterSamples) {
+            foreach ($name in @('LogicalDisk','Memory','Available MBytes','Disk Reads/sec','Disk Writes/sec','Disk Read Bytes/sec','Disk Write Bytes/sec','Free Megabytes','Avg. Disk Queue Length')) {
+                $counter.Path = $counter.Path.Replace($name, 'Localized '+$name)
+            }
+            $counter.Path = $counter.Path.ToLowerInvariant()
+        }
+        foreach ($name in @('LogicalDisk','Memory','Available MBytes','Disk Reads/sec','Disk Writes/sec','Disk Read Bytes/sec','Disk Write Bytes/sec','Free Megabytes','Avg. Disk Queue Length')) {
+            $names[$name] = 'Localized '+$name
+        }
+        $sample = & $script:module { Get-SsaWindowsSample -ComputerName fixture -SqlProcessId 200 -LogicalProcessors 4 }
+        $sample.HostIops | Should -Be 15
+        $sample.HostThroughputMBps | Should -Be 3
+        $sample.DiskPressure[0].AvgQueueLength | Should -Be 2.5
+        $sample.Volumes[0].FreeGB | Should -Be 10
+    }
+    It 'still rejects missing required disk observations' {
+        $counterSet.CounterSamples = @($counterSet.CounterSamples | Where-Object { $_.Path -ne '\\fixture\LogicalDisk(_Total)\Disk Writes/sec' })
+        { & $script:module { Get-SsaWindowsSample -ComputerName fixture -SqlProcessId 200 -LogicalProcessors 4 } } | Should -Throw '*host memory/disk*'
+    }
+    It 'still rejects invalid disk counters and missing per-volume queue observations' {
+        $disk = $counterSet.CounterSamples | Where-Object { $_.Path -eq '\\fixture\LogicalDisk(_Total)\Disk Writes/sec' }
+        $disk.Status = 1
+        { & $script:module { Get-SsaWindowsSample -ComputerName fixture -SqlProcessId 200 -LogicalProcessors 4 } } | Should -Throw '*invalid data*'
+        $disk.Status = 0
+        $counterSet.CounterSamples = @($counterSet.CounterSamples | Where-Object { $_.Path -ne '\\fixture\LogicalDisk(C:)\Avg. Disk Queue Length' })
+        { & $script:module { Get-SsaWindowsSample -ComputerName fixture -SqlProcessId 200 -LogicalProcessors 4 } } | Should -Throw '*per-volume disk queue*'
+    }
+}
 Describe 'Rate and usable-duration accounting' {
     It 'does not count a first baseline or an outage as usable time' {
         $first = New-TestRawSample 0

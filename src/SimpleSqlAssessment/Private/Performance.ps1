@@ -61,7 +61,7 @@ function Get-SsaWindowsSample {
     $hostCpu = @($samples | Where-Object { $_.InstanceName -eq '_total' -and $_.Path -like "*\$($names.Processor)(*" -and $_.Path.EndsWith('\'+$names.'% Processor Time', [StringComparison]::OrdinalIgnoreCase) })
     $availableMemory = @($samples | Where-Object { $_.Path.EndsWith('\'+$names.'Available MBytes', [StringComparison]::OrdinalIgnoreCase) })
     if ($cpu.Count -ne 1 -or $memory.Count -ne 1 -or $hostCpu.Count -ne 1) { throw 'Required host/process counter samples are missing or ambiguous.' }
-    $diskTotals = @($samples | Where-Object { $_.InstanceName -eq '_total' -and ($_.Path.EndsWith('\'+$names.'Disk Reads/sec') -or $_.Path.EndsWith('\'+$names.'Disk Writes/sec') -or $_.Path.EndsWith('\'+$names.'Disk Read Bytes/sec') -or $_.Path.EndsWith('\'+$names.'Disk Write Bytes/sec')) })
+    $diskTotals = @($samples | Where-Object { $_.InstanceName -eq '_total' -and ($_.Path.EndsWith('\'+$names.'Disk Reads/sec', [StringComparison]::OrdinalIgnoreCase) -or $_.Path.EndsWith('\'+$names.'Disk Writes/sec', [StringComparison]::OrdinalIgnoreCase) -or $_.Path.EndsWith('\'+$names.'Disk Read Bytes/sec', [StringComparison]::OrdinalIgnoreCase) -or $_.Path.EndsWith('\'+$names.'Disk Write Bytes/sec', [StringComparison]::OrdinalIgnoreCase)) })
     if ($availableMemory.Count -ne 1 -or $diskTotals.Count -ne 4) { throw 'Required host memory/disk performance observations are missing.' }
     foreach ($counter in (@($cpu[0],$memory[0],$hostCpu[0],$availableMemory[0]) + $diskTotals)) {
         if ($counter.Status -ne 0 -or [double]::IsNaN($counter.CookedValue) -or $counter.CookedValue -lt 0) { throw 'A required Windows counter returned invalid data.' }
@@ -69,10 +69,10 @@ function Get-SsaWindowsSample {
     $hostIops = 0.0; $hostBytes = 0.0
     foreach ($counter in $samples) {
         if ($counter.InstanceName -ne '_total') { continue }
-        if ($counter.Path.EndsWith('\'+$names.'Disk Reads/sec') -or $counter.Path.EndsWith('\'+$names.'Disk Writes/sec')) { $hostIops += $counter.CookedValue }
-        if ($counter.Path.EndsWith('\'+$names.'Disk Read Bytes/sec') -or $counter.Path.EndsWith('\'+$names.'Disk Write Bytes/sec')) { $hostBytes += $counter.CookedValue }
+        if ($counter.Path.EndsWith('\'+$names.'Disk Reads/sec', [StringComparison]::OrdinalIgnoreCase) -or $counter.Path.EndsWith('\'+$names.'Disk Writes/sec', [StringComparison]::OrdinalIgnoreCase)) { $hostIops += $counter.CookedValue }
+        if ($counter.Path.EndsWith('\'+$names.'Disk Read Bytes/sec', [StringComparison]::OrdinalIgnoreCase) -or $counter.Path.EndsWith('\'+$names.'Disk Write Bytes/sec', [StringComparison]::OrdinalIgnoreCase)) { $hostBytes += $counter.CookedValue }
     }
-    $pressure = @($samples | Where-Object { $_.InstanceName -ne '_total' -and $_.Path.EndsWith('\'+$names.'Avg. Disk Queue Length') } | ForEach-Object {
+    $pressure = @($samples | Where-Object { $_.InstanceName -ne '_total' -and $_.Path.EndsWith('\'+$names.'Avg. Disk Queue Length', [StringComparison]::OrdinalIgnoreCase) } | ForEach-Object {
         if ($_.Status -ne 0 -or [double]::IsNaN($_.CookedValue) -or [double]::IsInfinity($_.CookedValue) -or $_.CookedValue -lt 0) { throw 'A required volume queue counter returned invalid data.' }
         [pscustomobject]@{ Volume=$_.InstanceName; AvgQueueLength=$_.CookedValue }
     })
@@ -83,7 +83,7 @@ function Get-SsaWindowsSample {
         WorkingSetGB = $memory[0].CookedValue / 1GB; AvailableMemoryGB = $availableMemory[0].CookedValue / 1024
         HostIops = $hostIops; HostThroughputMBps = $hostBytes / 1MB
         DiskPressure = $pressure
-        Volumes = @($samples | Where-Object { $_.InstanceName -ne '_total' -and $_.Path.EndsWith('\'+$names.'Free Megabytes') } | ForEach-Object { [pscustomobject]@{ Volume = $_.InstanceName; FreeGB = $_.CookedValue / 1024 } })
+        Volumes = @($samples | Where-Object { $_.InstanceName -ne '_total' -and $_.Path.EndsWith('\'+$names.'Free Megabytes', [StringComparison]::OrdinalIgnoreCase) } | ForEach-Object { [pscustomobject]@{ Volume = $_.InstanceName; FreeGB = $_.CookedValue / 1024 } })
     }
 }
 
