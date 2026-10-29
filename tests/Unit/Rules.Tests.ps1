@@ -93,6 +93,45 @@ Describe 'Published rule accounting' {
     }
 }
 Describe 'T-SQL evidence boundaries' {
+    It 'keeps Windows identities and SQL Agent job content non-blocking while retaining module blockers' {
+        $bundle = New-TestBundle
+        Set-TestEvidence $bundle 'Principals' @([pscustomobject]@{Name='DOMAIN\App';Type='WINDOWS_LOGIN'})
+        Set-TestEvidence $bundle 'DatabasePrincipals' @([pscustomobject]@{Name='DOMAIN\Readers';Type='WINDOWS_GROUP'}) 'App'
+        Set-TestEvidence $bundle 'Jobs' @([pscustomobject]@{Name='Maintenance';Subsystem='TSQL';DatabaseName='App';StepId=1})
+        $bundle.Definitions = @([pscustomobject]@{
+            Database='App';Object='Maintenance:1';Source='Job';Encrypted=$false
+            Text="EXEC xp_cmdshell 'echo'; SELECT * FROM OtherDb.dbo.T;"
+        })
+        $result = & $script:module {param($b) Invoke-SsaRules $b} $bundle
+        @($result.Findings | Where-Object Category -EQ Issue).Count | Should -Be 0
+        $identity = @($result.Findings | Where-Object RuleId -EQ WindowsAuthentication)
+        $identity.Count | Should -Be 4
+        @($identity | Where-Object Category -NE Warning).Count | Should -Be 0
+        @($identity | Where-Object Message -NotLike '*non-blocking*').Count | Should -Be 0
+        $jobs = @($result.Findings | Where-Object { $_.RuleId -in @('AgentJobs','TransactSqlJob') })
+        $jobs.Count | Should -BeGreaterThan 1
+        @($jobs | Where-Object Category -NE Warning).Count | Should -Be 0
+        @($result.Evaluations | Where-Object { $_.RuleId -in @('WindowsAuthentication','AgentJobs','TransactSqlJob') -and $_.Status -eq 'NeedsReview' }).Count | Should -Be 0
+
+        $bundle.Definitions += [pscustomobject]@{
+            Database='App';Object='dbo.UnsafeProcedure';Source='Module';Encrypted=$false
+            Text="EXEC xp_cmdshell 'echo';"
+        }
+        $result = & $script:module {param($b) Invoke-SsaRules $b} $bundle
+        $blockers = @($result.Findings | Where-Object Category -EQ Issue)
+        $blockers.Count | Should -Be 2
+        @($blockers | Where-Object Object -NE 'dbo.UnsafeProcedure').Count | Should -Be 0
+    }
+    It 'does not let unparseable job text make database module checks incomplete' {
+        $bundle = New-TestBundle
+        Set-TestEvidence $bundle 'Jobs' @([pscustomobject]@{Name='DynamicJob';Subsystem='TSQL'})
+        $bundle.Definitions = @([pscustomobject]@{
+            Database='App';Object='DynamicJob:1';Source='Job';Encrypted=$false;Text='EXEC sp_executesql @statement;'
+        })
+        $result = & $script:module {param($b) Invoke-SsaRules $b} $bundle
+        @($result.Evaluations | Where-Object { $_.RuleId -eq 'XpCmdshell' -and $_.Status -eq 'Pass' }).Count | Should -Be 2
+        @($result.Evaluations | Where-Object { $_.RuleId -eq 'TransactSqlJob' -and $_.Status -eq 'NeedsReview' }).Count | Should -Be 1
+    }
     It 'finds constant dynamic SQL but exposes unresolved sp_executesql' {
         $constant = & $script:module { Read-SsaSyntax "EXEC('EXEC xp_cmdshell ''echo''');" 11 }
         @($constant.Hits | Where-Object { $_.Kind -eq 'Procedure' -and $_.Value -eq 'xp_cmdshell' }).Count | Should -Be 1

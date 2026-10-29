@@ -36,6 +36,13 @@ Configured linked servers/providers without proven per-database usage are
 dependency reviews, not invented database blockers. A direct incompatible
 reference still creates its relevant finding.
 
+Windows authentication and SQL Agent jobs are non-blocking migration warnings,
+with guidance for identity mapping, scheduling, or job-step changes. T-SQL job
+text is assessed through the warning-level job checks, not as database module
+code that can create migration blockers. Incompatible SQL in persisted database
+modules or server triggers still produces its normal issue. Missing identity/job
+evidence or unresolved job SQL remains an explicit coverage review.
+
 ## Documentation reconciliations
 
 - Historical MI size/count rule IDs remain intact, but checks use the current

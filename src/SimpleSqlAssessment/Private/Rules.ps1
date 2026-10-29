@@ -92,7 +92,11 @@ function Get-SsaRuleMatches {
     $name = ''; if ($Database) { $name = $Database.Name }
     $rows = @()
     switch ($Rule.RuleId) {
-        AgentJobs { $rows = @(Get-SsaEvidenceRows $Bundle 'Jobs' '') }
+        AgentJobs {
+            foreach ($job in @(Get-SsaEvidenceRows $Bundle 'Jobs' '')) {
+                New-SsaMatch $job.Name 'SQL Agent jobs are a non-blocking migration warning. Plan replacement scheduling for Azure SQL Database.'
+            }
+        }
         AnalysisCommandJob { $rows = @(Get-SsaEvidenceRows $Bundle 'Jobs' '' | Where-Object { $_.Subsystem -eq 'ANALYSISCOMMAND' }) }
         AnalysisQueryJob { $rows = @(Get-SsaEvidenceRows $Bundle 'Jobs' '' | Where-Object { $_.Subsystem -eq 'ANALYSISQUERY' }) }
         MergeJob { $rows = @(Get-SsaEvidenceRows $Bundle 'Jobs' '' | Where-Object { $_.Subsystem -eq 'Merge' }) }
@@ -119,6 +123,10 @@ function Get-SsaRuleMatches {
         WindowsAuthentication {
             $rows = @(Get-SsaEvidenceRows $Bundle 'Principals' '')
             foreach ($db in $Bundle.Databases) { $rows += @(Get-SsaEvidenceRows $Bundle 'DatabasePrincipals' $db.Name) }
+            foreach ($principal in $rows) {
+                New-SsaMatch $principal.Name 'Windows authentication is a non-blocking migration warning. Plan supported identity mapping and validate access on the target.'
+            }
+            $rows = @()
         }
         CryptographicProvider {
             foreach ($provider in @(Get-SsaEvidenceRows $Bundle 'Providers' '')) {
@@ -203,7 +211,10 @@ function Invoke-SsaRules {
         }
         foreach ($database in $scopes) {
             $dbName = ''; if ($database) { $dbName = $database.Name }
-            $selected = @($analyses | Where-Object { -not $dbName -or $_.Database -eq $dbName })
+            $selected = @($analyses | Where-Object {
+                (-not $dbName -or $_.Database -eq $dbName) -and
+                ($_.Source -ne 'Job' -or $rule.RuleId -eq 'TransactSqlJob')
+            })
             $incomplete = $false
             foreach ($kind in $rule.RequiredEvidence) { if (-not (Test-SsaEvidenceComplete $Bundle $kind $dbName)) { $incomplete = $true } }
             if ('Definitions' -in $rule.RequiredEvidence -and @($selected | Where-Object { $_.Syntax.Incomplete }).Count) { $incomplete = $true }

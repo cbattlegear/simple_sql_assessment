@@ -74,6 +74,29 @@ Describe 'Sizing and workflow integration' {
         Should -Invoke Get-SsaPriceEstimate -ModuleName SimpleSqlAssessment -Times 0 -Exactly
         Should -Invoke New-SsaSqlConnection -ModuleName SimpleSqlAssessment -Times 0 -Exactly
     }
+    It 'exports Windows authentication and Agent jobs as warnings with zero migration blockers' {
+        $bundle = New-TestBundle
+        Set-TestEvidence $bundle 'Principals' @([pscustomobject]@{Name='DOMAIN\App';Type='WINDOWS_LOGIN'})
+        Set-TestEvidence $bundle 'Jobs' @([pscustomobject]@{Name='Maintenance';Subsystem='TSQL';StepId=1;DatabaseName='App'})
+        $bundle.Definitions = @([pscustomobject]@{
+            Database='App';Object='Maintenance:1';Source='Job';Encrypted=$false;Text="EXEC xp_cmdshell 'echo';"
+        })
+        $null = Save-TestBundle $script:collection $bundle
+        $output = Join-Path $TestDrive 'planning-warnings'
+        $result = Invoke-SsaAssessment -CollectionPath $script:collection -OutputPath $output -Region eastus -Offline -SkipPerformance
+        foreach ($target in $result.Targets) {
+            $target.BlockerCount | Should -Be 0
+            $target.Compatibility | Should -Not -Be NotReady
+        }
+        @($result.Findings | Where-Object RuleId -EQ WindowsAuthentication).Count | Should -Be 2
+        @($result.Findings | Where-Object RuleId -EQ AgentJobs).Count | Should -Be 1
+        @($result.Findings | Where-Object RuleId -EQ TransactSqlJob).Count | Should -Be 1
+        @($result.Findings | Where-Object Category -NE Warning).Count | Should -Be 0
+        $json = Get-Content -LiteralPath (Join-Path $output 'assessment.json') -Raw | ConvertFrom-Json
+        @($json.Targets | Where-Object BlockerCount -NE 0).Count | Should -Be 0
+        $csv = @(Import-Csv -LiteralPath (Join-Path $output 'csv\findings.csv'))
+        @($csv | Where-Object Category -NE Warning).Count | Should -Be 0
+    }
     It 'resolves dot output and relative collection paths against the PowerShell location' {
         $working = Join-Path $TestDrive 'relative workflow (1)'
         $bundlePath = Join-Path $working 'source-bundle'
